@@ -1,0 +1,43 @@
+{{- if .Values.postgres.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "balkanid.fullname" . }}-postgres
+spec:
+  selector: { app: {{ include "balkanid.fullname" . }}-postgres }
+  ports: [{ name: postgres, port: 5432, targetPort: postgres }]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "balkanid.fullname" . }}-postgres
+spec:
+  serviceName: {{ include "balkanid.fullname" . }}-postgres
+  replicas: 1
+  selector:
+    matchLabels: { app: {{ include "balkanid.fullname" . }}-postgres }
+  template:
+    metadata:
+      labels: { app: {{ include "balkanid.fullname" . }}-postgres }
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image }}
+          ports: [{ name: postgres, containerPort: 5432 }]
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.postgres.database | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.postgres.username | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .Values.secrets.existingSecret }}, key: POSTGRES_PASSWORD } }
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
+          readinessProbe: { exec: { command: ["sh", "-c", "pg_isready -U {{ .Values.postgres.username }} -d {{ .Values.postgres.database }}"] }, initialDelaySeconds: 5 }
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: { requests: { storage: {{ .Values.postgres.storage }} } }
+{{- end }}

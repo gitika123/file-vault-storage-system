@@ -1,0 +1,90 @@
+name: ci
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: '1.24' }
+      - run: gofmt -l cmd internal
+        working-directory: backend
+      - run: go vet ./...
+        working-directory: backend
+      - run: go test ./...
+        working-directory: backend
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run lint
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - run: npm run preview -- --host 127.0.0.1 > /tmp/balkanid-vite.log 2>&1 &
+        working-directory: frontend
+      - run: npm run test:uat
+        working-directory: frontend
+  containers:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build backend image
+        run: docker build --tag balkanid-api:${{ github.sha }} backend
+      - name: Build frontend image
+        run: docker build --tag balkanid-frontend:${{ github.sha }} frontend
+      - name: Log in to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tag images for GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker tag balkanid-api:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/balkanid-api:${{ github.sha }}
+          docker tag balkanid-frontend:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/balkanid-frontend:${{ github.sha }}
+      - name: Push images to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/balkanid-api:${{ github.sha }}
+          docker push ghcr.io/${{ github.repository_owner }}/balkanid-frontend:${{ github.sha }}
+  deploy-kubernetes:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: containers
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-kubectl@v4
+      - name: Configure cluster credentials
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/kube"
+          echo '${{ secrets.KUBE_CONFIG_B64 }}' | base64 --decode > "$RUNNER_TEMP/kube/config"
+          echo "KUBECONFIG=$RUNNER_TEMP/kube/config" >> "$GITHUB_ENV"
+      - name: Apply namespace and configuration
+        run: kubectl apply -f k8s/namespace.yaml -f k8s/configmap.yaml
+      - name: Apply workload manifests
+        run: kubectl apply -f k8s/storage.yaml -f k8s/api.yaml -f k8s/frontend.yaml -f k8s/postgres.yaml -f k8s/ingress.yaml
+      - name: Use published images
+        run: |
+          kubectl -n balkanid set image deployment/balkanid-api api=ghcr.io/${{ github.repository_owner }}/balkanid-api:${{ github.sha }}
+          kubectl -n balkanid set image deployment/balkanid-frontend frontend=ghcr.io/${{ github.repository_owner }}/balkanid-frontend:${{ github.sha }}
+          kubectl -n balkanid rollout status deployment/balkanid-api --timeout=180s
+          kubectl -n balkanid rollout status deployment/balkanid-frontend --timeout=180s

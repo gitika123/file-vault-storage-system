@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "balkanid.fullname" . }}-frontend
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  selector:
+    matchLabels: { app: {{ include "balkanid.fullname" . }}-frontend }
+  template:
+    metadata:
+      labels: { app: {{ include "balkanid.fullname" . }}-frontend }
+    spec:
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          ports: [{ name: http, containerPort: 80 }]
+          readinessProbe: { httpGet: { path: /, port: http }, initialDelaySeconds: 5 }
+          livenessProbe: { httpGet: { path: /, port: http }, initialDelaySeconds: 10 }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "balkanid.fullname" . }}-frontend
+spec:
+  type: {{ .Values.frontend.service.type }}
+  selector: { app: {{ include "balkanid.fullname" . }}-frontend }
+  ports: [{ name: http, port: {{ .Values.frontend.service.port }}, targetPort: http }]

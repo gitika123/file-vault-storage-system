@@ -1,0 +1,46 @@
+replicaCount: 2
+api:
+  image:
+    repository: balkanid-api
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+frontend:
+  replicaCount: 2
+  image:
+    repository: balkanid-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+postgres:
+  enabled: true
+  image: postgres:16-alpine
+  storage: 10Gi
+  database: balkanid
+  username: balkanid
+ingress:
+  enabled: true
+  className: nginx
+  host: vault.example.com
+  bodySize: 100m
+image:
+  repository: balkanid-api
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 8080
+storage:
+  size: 10Gi
+  accessMode: ReadWriteOnce
+secrets:
+  existingSecret: balkanid-secrets
+  databaseUrlKey: DATABASE_URL
+  redisUrlKey: REDIS_URL
+  sessionSecretKey: SESSION_SECRET
+  csrfSecretKey: CSRF_SECRET
+resources: {}

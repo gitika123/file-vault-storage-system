@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "balkanid.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels: { app: {{ include "balkanid.name" . }} }
+  template:
+    metadata:
+      labels: { app: {{ include "balkanid.name" . }} }
+    spec:
+      serviceAccountName: {{ include "balkanid.fullname" . }}
+      containers:
+        - name: api
+          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
+          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          ports: [{ name: http, containerPort: 8080 }]
+          envFrom:
+            - configMapRef: { name: {{ include "balkanid.fullname" . }}-config }
+            - secretRef: { name: {{ .Values.secrets.existingSecret }} }
+          readinessProbe: { httpGet: { path: /health/ready, port: http }, initialDelaySeconds: 5, periodSeconds: 10 }
+          livenessProbe: { httpGet: { path: /health/live, port: http }, initialDelaySeconds: 10, periodSeconds: 20 }
+          volumeMounts: [{ name: blobs, mountPath: /var/lib/balkanid/blobs }]
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+      volumes: [{ name: blobs, persistentVolumeClaim: { claimName: {{ include "balkanid.fullname" . }}-blobs } }]

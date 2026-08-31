@@ -1,0 +1,33 @@
+# Go
+backend/bin/
+backend/tmp/
+backend/.gocache/
+backend/.gomodcache/
+*.test
+
+# Node/frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Local configuration and data
+.env
+.env.*
+!.env.example
+.docker-config/
+data/
+*.log
+*.err
+
+# Tooling
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+coverage/
+playwright-report/
+test-results/
+frontend/tsconfig.tsbuildinfo
+
+# Review artifacts
+tmp-pdf-review/

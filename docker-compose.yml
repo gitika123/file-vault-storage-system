@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: balkanid
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: balkanid
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations/000001_initial_schema.sql:/docker-entrypoint-initdb.d/001_initial_schema.sql:ro
+      - ./migrations/000002_auth_sessions.sql:/docker-entrypoint-initdb.d/002_auth_sessions.sql:ro
+      - ./migrations/000003_search_indexes.sql:/docker-entrypoint-initdb.d/003_search_indexes.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U balkanid -d balkanid"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+  api:
+    build: ./backend
+    environment:
+      APP_ENV: production
+      HTTP_ADDR: :8080
+      DATABASE_URL: postgres://balkanid:${POSTGRES_PASSWORD}@postgres:5432/balkanid?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in .env}
+      CSRF_SECRET: ${CSRF_SECRET:?set CSRF_SECRET in .env}
+      BLOB_STORE_DRIVER: local
+      BLOB_STORE_PATH: /var/lib/balkanid/blobs
+      SEED_ALICE_PASSWORD: ${SEED_ALICE_PASSWORD:?set SEED_ALICE_PASSWORD in .env}
+      SEED_BOB_PASSWORD: ${SEED_BOB_PASSWORD:?set SEED_BOB_PASSWORD in .env}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?set SEED_ADMIN_PASSWORD in .env}
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["/usr/local/bin/balkanid-seed && exec /usr/local/bin/balkanid-api"]
+    volumes:
+      - blob_data:/var/lib/balkanid/blobs
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  frontend:
+    build: ./frontend
+    ports: ["5173:80"]
+    depends_on: [api]
+volumes:
+  postgres_data:
+  blob_data:
