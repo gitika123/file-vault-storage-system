@@ -46,24 +46,24 @@ jobs:
       - name: Build frontend image
         run: docker build --tag balkanid-frontend:${{ github.sha }} frontend
       - name: Log in to GHCR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Tag images for GHCR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
           docker tag balkanid-api:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/balkanid-api:${{ github.sha }}
           docker tag balkanid-frontend:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/balkanid-frontend:${{ github.sha }}
       - name: Push images to GHCR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
           docker push ghcr.io/${{ github.repository_owner }}/balkanid-api:${{ github.sha }}
           docker push ghcr.io/${{ github.repository_owner }}/balkanid-frontend:${{ github.sha }}
   deploy-kubernetes:
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
     needs: containers
     runs-on: ubuntu-latest
     permissions:
