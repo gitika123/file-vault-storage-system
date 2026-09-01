@@ -2,15 +2,11 @@ services:
   - type: web
     name: api
     runtime: docker
-    plan: 0.5c-512mb
+    plan: free
     region: oregon
     rootDir: backend
     dockerfilePath: ./Dockerfile
     healthCheckPath: /health/live
-    disk:
-      name: vault-blobs
-      mountPath: /var/lib/balkanid/blobs
-      sizeGB: 1
     envVars:
       - key: DATABASE_URL
         fromDatabase:
