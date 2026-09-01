@@ -1,0 +1,166 @@
+% File Vault - reviewer-facing product, implementation, and delivery document
+% Compile with: pdflatex hiring-task-documentation.tex (run twice for references).
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=0.82in,headheight=15pt]{geometry}
+\usepackage[T1]{fontenc}\usepackage{lmodern}\usepackage{microtype}
+\usepackage{booktabs}\usepackage{tabularx}\usepackage{longtable}\usepackage{array}
+\usepackage{enumitem}\usepackage{xcolor}\usepackage{listings}\usepackage{tcolorbox}
+\usepackage{titlesec}\usepackage{fancyhdr}\usepackage{float}\usepackage{lastpage}\usepackage{hyperref}
+
+\definecolor{navy}{HTML}{080A25}\definecolor{ink}{HTML}{101D35}\definecolor{indigo}{HTML}{4354D8}
+\definecolor{cyan}{HTML}{54D8E5}\definecolor{muted}{HTML}{71809A}\definecolor{wash}{HTML}{F4F6FB}
+\definecolor{line}{HTML}{DEE5F0}\definecolor{success}{HTML}{197B78}
+\hypersetup{colorlinks=true,linkcolor=indigo,urlcolor=indigo,pdftitle={File Vault - Product, Architecture, and Delivery Documentation},pdfauthor={Engineering}}
+\setlength{\parindent}{0pt}\setlength{\parskip}{6pt}
+\setlist[itemize]{leftmargin=1.4em,itemsep=2pt,topsep=3pt}\setlist[enumerate]{leftmargin=1.6em,itemsep=3pt,topsep=3pt}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\pagestyle{fancy}\fancyhf{}\fancyhead[L]{\color{indigo}\small\textbf{FILE VAULT} \;|\; ENGINEERING DOCUMENTATION}\fancyhead[R]{\color{muted}\small Technical review}\fancyfoot[C]{\color{muted}\small\thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}\renewcommand{\footrulewidth}{0pt}
+\titleformat{\section}{\Large\bfseries\color{indigo}}{\thesection}{0.7em}{}\titleformat{\subsection}{\large\bfseries\color{ink}}{\thesubsection}{0.7em}{}\titleformat{\subsubsection}{\normalsize\bfseries\color{indigo}}{\thesubsubsection}{0.7em}{}
+\titlespacing*{\section}{0pt}{22pt}{8pt}\titlespacing*{\subsection}{0pt}{14pt}{5pt}
+\lstset{basicstyle=\ttfamily\small,breaklines=true,columns=fullflexible,backgroundcolor=\color{wash},frame=single,rulecolor=\color{line},framerule=0.4pt,showstringspaces=false}
+\newcommand{\status}[1]{\textcolor{success}{\textbf{#1}}}\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\shot}[2]{\begin{figure}[H]\centering\fcolorbox{line}{wash}{\parbox[c][1.45in][c]{0.91\textwidth}{\centering\textcolor{muted}{\textbf{Screenshot placeholder: #1}}\\[4pt]\small #2\\[4pt]\texttt{Replace this box with the final PNG or JPG.}}\caption{#1}\end{figure}}
+
+\begin{document}
+\begin{titlepage}\thispagestyle{empty}\vspace*{0.7in}\begin{center}
+{\Large\textcolor{indigo}{\textbf{FILE VAULT}}}\par\vspace{0.22in}
+{\fontsize{31}{36}\selectfont\textcolor{navy}{\textbf{Product, Architecture,\\[2pt] and Delivery Documentation}}}\par\vspace{0.22in}
+{\large\textcolor{muted}{A secure, multi-user file-management application}}\par\vspace{0.55in}
+\fcolorbox{line}{wash}{\parbox{0.82\textwidth}{\centering\small\color{ink}File Vault gives users a private workspace for uploading, organizing, searching, sharing, previewing, and downloading files. It records ownership and provenance, deduplicates identical content, enforces quotas and rate limits, and gives administrators a protected oversight view.}}
+\end{center}\vfill
+\begin{tabularx}{\textwidth}{P{0.26\textwidth}Y}\toprule
+\textbf{Document purpose} & Reviewer-facing explanation of product intent, implementation, infrastructure, verification, and hiring-task deliverables.\\
+\midrule\textbf{Application} & File Vault — a secure file storage and sharing system.\\
+\textbf{Technology} & Go REST API, React/TypeScript frontend, PostgreSQL, Redis, Docker, Kubernetes, Helm, and GitHub Actions.\\
+\textbf{Status} & Core requirements implemented; local/container verification completed; cloud deployment requires provider configuration.\\
+\bottomrule\end{tabularx}\vspace{0.25in}\begin{center}\textcolor{muted}{\small Prepared for technical review \;•\; Version 1.0 \;•\; \today}\end{center}\end{titlepage}
+\tableofcontents\newpage
+
+\section{Product overview}
+\subsection{What the product is about}
+File Vault is a secure personal and team file-management application. Each registered user receives a private vault where they can upload one or many files, organize files into folders, search and filter their own content, inspect metadata, preview supported formats, download files, and manage sharing permissions. The system is designed around explicit ownership: the uploader/owner controls deletion and sharing, while administrators can oversee workspace activity without deleting files owned by other users.
+
+The product also addresses real file-platform concerns. Identical content is stored once through SHA-256 content addressing, user quota usage is measured from logical ownership, storage savings are calculated from deduplicated physical references, and download activity is counted for public files and surfaced in analytics.
+
+\subsection{Primary user journeys}
+\begin{itemize}
+\item A new user registers, signs in, and receives a private vault with the default quota.
+\item A user uploads files through the picker or drag-and-drop. Each file is streamed, validated, hashed, quota-checked, and either stored as a new blob or linked to an existing blob.
+\item A user views a file list, opens metadata, moves files into folders, previews supported files, downloads content, and deletes only files they own.
+\item A user shares a file or folder directly with another registered user or creates a public link, and can later revoke access.
+\item An administrator uploads and shares files, lists all workspace files with uploader details, and views protected usage, download, and deduplication statistics.
+\end{itemize}
+\shot{Product overview}{Authenticated home screen showing navigation, file inventory, storage cards, and the primary upload action.}
+
+\section{Technology stack}
+\begin{tabularx}{\textwidth}{P{0.22\textwidth}Y Y}\toprule\textbf{Layer}&\textbf{Technology}&\textbf{How it is used}\\\midrule
+Backend&Go&Modular monolith with typed handlers, services, policies, health checks, and structured logging.\\
+API&REST over HTTP&Authentication, uploads, file management, folders, sharing, content, search, statistics, events, and administration.\\
+Frontend&React + TypeScript + Vite&Responsive vault UI, authentication, upload/drop interaction, filters, file details, sharing, folders, admin tabs, and charts.\\
+Database&PostgreSQL&Users, sessions, files, blobs, folders, tags, shares, downloads, audit events, migrations, and indexes.\\
+Cache/limits&Redis&Shared rate-limiter state for multi-replica deployments; local fallback for evaluation.\\
+Blob storage&Local / S3-compatible adapter&Content-addressed blobs for local Compose or shared object storage in production.\\
+Visualization&Recharts&Responsive user and administrator storage, deduplication, quota, and activity visualizations.\\
+Testing&Go test, vet, race detector, Playwright&Unit, integration, authorization, upload, MIME, deduplication, UAT, and smoke verification.\\
+Delivery&Docker, Kubernetes, Helm, GitHub Actions&Reproducible containers, deployment manifests, charts, CI checks, and image builds.\\\bottomrule\end{tabularx}
+
+\section{Core features and implementation}
+This section follows the core feature categories from the hiring task and states how each requirement is implemented.
+
+\subsection{File uploads}
+\textbf{Requirement.} Support single and multiple file uploads, drag-and-drop upload in the frontend, and content validation against the declared MIME type.
+
+\textbf{Implementation.} The frontend uses a multiple-file input and a global drag/drop guard that prevents browser navigation when files are dropped anywhere in the vault. The upload service streams multipart content with bounded request and per-file limits, calculates SHA-256 during ingestion, checks signatures and format structure against the declared MIME type, and returns a per-file result so a mixed batch reports successes and rejections independently. Forged extensions or mismatched content are rejected before commit.
+\shot{Upload and drag-and-drop}{Upload action in its resting state and a capture showing the drop target highlighted while files are dragged over the vault.}
+
+\subsection{File management and sharing}
+\textbf{Requirement.} Users can list and view owned files with detailed metadata; organize files into folders; share files and folders publicly or keep them private; optionally share directly with specific users; show public download counters; and allow only the uploader to delete a file.
+
+\textbf{Implementation.} File metadata is owner-scoped and includes uploader identity, logical size, detected and declared MIME types, upload time, blob size, reference count, visibility, and download count. Folders are owner-scoped records with optional parent folders. Files can move between root and folders. Folder cards support open, rename, share, and delete through a context menu, including right-click behavior from the home inventory and folders view.
+
+Public links use cryptographically random tokens whose hashes are persisted. Direct shares persist recipient and permission, inherit folder access for files inside a shared folder, and expose revocation. Private access is the default. Delete handlers enforce ownership, protect other users' files from deletion, and remove physical blobs only when the final logical reference is gone.
+\shot{File details and sharing}{File-details view showing uploader, MIME validation, deduplication references, folder movement, public-link copy, direct sharing, and revoke controls.}
+
+\subsection{Search and filtering}
+\textbf{Requirement.} Search by filename; filter by MIME type, size range, date range, tags, and uploader name; combine filters; optimize queries for scale.
+
+\textbf{Implementation.} The list endpoint accepts parameterized filters and bounded cursor pagination. Filename search uses PostgreSQL text search/index support, while owner, uploader, folder, upload date, MIME, size, and tag predicates are combined in one query. The frontend presents the requested categories: selectable MIME type, minimum and maximum bytes, uploaded-after and uploaded-before dates, tag, uploader name, plus filename search. The date fields represent the inclusive upload timestamp range; the backend normalizes them to UTC boundaries and rejects inverted ranges. Search-plan evidence is in \code{docs/performance/search-plan.md}.
+\shot{Search and filtering}{File inventory with filename search and MIME, size, date, tag, and uploader filters applied together.}
+
+\subsection{Rate limiting and quotas}
+\textbf{Requirement.} Enforce per-user API rate limits with a configurable default of 2 calls per second, configurable per-user storage quota with a default of 10 MB, and proper error codes/messages.
+
+\textbf{Implementation.} The limiter is keyed by authenticated user identity and configured through \code{API\_RATE\_PER\_SECOND} and \code{API\_RATE\_BURST}. The quota is configured through \code{USER\_QUOTA\_BYTES}, defaulting to 10 MiB (10\,485\,760 bytes). Uploads make the quota decision transactionally against logical owned bytes, including duplicate uploads without double-charging physical storage. Exceeded limits return structured errors, including HTTP 429 for rate limiting and HTTP 413 with a quota-specific code for storage overflow. Redis-backed limiter state is used when \code{REDIS\_URL} is configured for multiple replicas.
+
+\subsection{Storage statistics}
+\textbf{Requirement.} Display total deduplicated storage used, original usage without deduplication, and savings in bytes and percentage.
+
+\textbf{Implementation.} Original usage is the sum of active logical file sizes owned by the user. Deduplicated usage sums distinct referenced blob sizes for that user. Savings bytes equal original usage minus deduplicated usage, and savings percentage is savings divided by original usage, with a zero-safe calculation. The user dashboard displays summary cards and visualizations; administrators see workspace-wide metrics, download totals, user counts, file counts, and visual analytics.
+\shot{Storage statistics}{User storage cards and visual analytics showing original versus deduplicated usage, savings, and quota consumption.}
+
+\subsection{Admin panel}
+\textbf{Requirement.} Admins can upload files and share them with other users; the admin panel lists all files with uploader details; admins can view download counts and usage statistics.
+
+\textbf{Implementation.} Administrator routes are protected by RBAC. The administrator screen separates an admin home for upload/share actions, an all-files inventory with uploader name/email, MIME, size, date, and download count, and a Statistics tab with workspace usage and Recharts visualizations. Administrators can inspect and share files but cannot delete files owned by another user. Admin and user statistics use the same logical/physical semantics, scoped to their respective views.
+\shot{Administrator oversight}{Admin file inventory and separate Statistics tab with storage-efficiency, deduplication, activity, and download visualizations.}
+
+\section{Deliverables}
+\begin{longtable}{P{0.25\textwidth}P{0.17\textwidth}P{0.48\textwidth}}\toprule\textbf{Deliverable}&\textbf{Status}&\textbf{How it is delivered}\\\midrule
+Go backend&\status{Complete}&\code{backend/} contains API server, domain services, handlers, policies, health endpoints, configuration, logging, and tests.\\
+REST or GraphQL API&\status{Complete}&REST is the shipped runtime; a GraphQL SDL contract is retained because the brief accepts REST and prefers GraphQL.\\
+PostgreSQL schema/migrations&\status{Complete}&Forward-only migrations define users, auth sessions, blobs, files, folders, tags, shares, downloads, audit events, indexes, and constraints.\\
+React/TypeScript frontend&\status{Complete}&\code{frontend/} provides authenticated vault, folders, upload/drop UX, details, sharing, filtering, admin navigation, and analytics.\\
+Docker Compose&\status{Complete}&Compose runs PostgreSQL, Redis, API, and Nginx frontend with health checks and persistent local volumes.\\
+Documentation&\status{Complete}&Contracts, database/storage notes, UAT checklist, delivery matrix, deployment guide, AI methodology, and this report are maintained under \code{docs/}.\\\bottomrule\end{longtable}
+
+\section{Product orchestration and infrastructure}
+\subsection{Runtime orchestration}
+Docker Compose orchestrates PostgreSQL for relational state, Redis for shared limit state, the Go API for business logic, and Nginx serving the React build while proxying API/public-content requests. Health checks ensure the API starts after dependencies are ready. The API runs idempotent seed logic only when runtime seed variables are supplied; secrets and passwords are not stored in source control.
+
+\subsection{Data and storage orchestration}
+The database owns logical metadata and relationships. The blob adapter owns physical content. A file row references a content-addressed blob by digest; multiple file rows can reference one blob. Reference counts are updated transactionally, and deletion removes the physical object only after the final reference disappears. Production uses the S3-compatible adapter so multiple API replicas share the content plane.
+
+\subsection{Security orchestration}
+Authentication uses Argon2id password hashes, database-backed sessions, HttpOnly cookies, CSRF tokens, and explicit owner/admin policy checks. Public share tokens are random and persisted only as hashes. Private, direct-share, and public-content paths are authorized separately. The API returns structured error codes rather than exposing implementation details.
+
+\subsection{Deployment orchestration}
+Raw Kubernetes manifests are in \code{k8s/}; the Helm chart is in \code{helm/balkanid/}. They include API/frontend Deployments and Services, PostgreSQL, Ingress, ConfigMap, Secret template, probes, service account, and PVCs. A real cloud launch should use managed PostgreSQL, managed Redis/Key Value, shared object storage, TLS, external secrets, backups, and observability.
+
+\section{Bonus points implemented}
+\begin{itemize}
+\item \textbf{Folder organization:} owner-scoped/nested folders, file movement, rename/delete rules, context menus, public folder links, and direct folder sharing with inherited access.
+\item \textbf{Kubernetes:} Deployments, Services, Ingress, ConfigMap, Secret template, probes, PostgreSQL resources, and PVCs under \code{k8s/}.
+\item \textbf{Helm:} reusable chart under \code{helm/balkanid/}; lint and template validation were performed.
+\item \textbf{CI/CD:} GitHub Actions runs formatting, \code{go vet}, Go tests, frontend lint/build, Playwright UAT, and Linux Docker builds. GHCR publication is configured for the repository branch using the workflow token.
+\item \textbf{Kubernetes deployment workflow:} manual workflow dispatch can apply manifests and roll out published images when \code{KUBE\_CONFIG\_B64} is configured.
+\item \textbf{UAT automation:} Playwright covers authentication, upload, MIME rejection, deduplication, search, folders, sharing, previews/downloads, admin authorization, drag-and-drop, and navigation.
+\item \textbf{Real-time activity:} authorized download events are published over SSE and consumed by user/admin views to refresh counters and statistics.
+\item \textbf{Preview and public statistics:} PDF/image and safe media/text preview paths, public download counters, and inline file-detail preview behavior.
+\item \textbf{Scale evidence:} cursor pagination, parameterized queries, search indexes, documented query-plan evidence, Redis limiter support, and S3-compatible storage adapter.
+\end{itemize}
+
+\section{Verification and evidence}
+\begin{itemize}
+\item Backend checks include \code{gofmt}, \code{go vet ./...}, Go tests, and race-oriented coverage.
+\item Frontend checks include dependency installation, ESLint, TypeScript compilation, Vite production build, and Playwright UAT.
+\item The core smoke suite exercises valid uploads, forged MIME rejection, SHA-256 reuse, metadata ownership, folders, statistics, public share/download, preview, authenticated download, and admin authorization through the Compose proxy.
+\item Authorization checks reject non-owner deletion, protect admin inventory/statistics, and verify public/direct sharing and revocation.
+\item Deployment artifacts are verified through Docker image builds, healthy Compose services, Kubernetes manifests, and Helm lint/template validation.
+\end{itemize}
+
+\section{Configuration and operational notes}
+\begin{tabularx}{\textwidth}{P{0.33\textwidth}P{0.18\textwidth}Y}\toprule\textbf{Variable}&\textbf{Default}&\textbf{Purpose}\\\midrule
+\code{API\_RATE\_PER\_SECOND}&2&Per-user steady-state API rate.\\\code{API\_RATE\_BURST}&4&Short burst allowance; set to 2 where strict two-call windows are required.\\\code{USER\_QUOTA\_BYTES}&10485760&Default logical quota: 10 MiB per user.\\\code{MAX\_FILE\_BYTES}&10485760&Maximum individual file size.\\\code{MAX\_UPLOAD\_BYTES}&52428800&Maximum multipart request size.\\\code{BLOB\_STORE\_DRIVER}&local&Set to \code{s3} for shared object storage.\\\code{REDIS\_URL}&—&Enables shared distributed rate-limiter state.\\\code{COOKIE\_SECURE}&false&Set true behind HTTPS.\\\bottomrule\end{tabularx}
+
+For a cloud launch, configure provider resources and secrets outside the repository. Render deployment is an external bonus step and requires a connected GitHub repository, managed PostgreSQL, Redis-compatible Key Value, shared object storage, strong session/CSRF secrets, a public origin, and routing that keeps frontend/API authentication on a compatible origin.
+
+\section{AI-assisted engineering methodology}
+AI was used as a productivity aid for requirement decomposition, implementation proposals, test-case generation, security review, UI review, and documentation drafting. The methodology remained human-directed and evidence-based:
+\begin{enumerate}\item Convert the brief into dependency-ordered issues and acceptance criteria.\item Give the assistant one bounded issue at a time with repository and security constraints.\item Request the smallest reviewable change in the correct module.\item Inspect the diff and review authorization, transactions, error handling, and data exposure.\item Add focused tests for success, failure, authorization, boundaries, and concurrency.\item Re-run deterministic checks and update documentation only when runtime evidence supports the claim.\end{enumerate}
+Reusable prompt patterns and the complete methodology are recorded in \code{docs/ai-prompts.md} and \code{docs/ai-methodology.md}. No credentials, tokens, private files, or secret values are included in source control.
+
+\section{Reviewer handoff}
+\begin{enumerate}\item Read this document for product intent, implementation coverage, deliverables, infrastructure, and bonus work.\item Follow \code{README.md} and \code{docs/deployment.md} to start the local stack.\item Inspect \code{docs/contracts/} and \code{migrations/} for API and schema details.\item Run \code{scripts/verify.ps1} and \code{scripts/core-smoke.ps1}.\item Run the Playwright UAT suite for the highest-value browser journeys.\end{enumerate}
+\begin{tcolorbox}[colback=wash,colframe=line,boxrule=0.4pt,arc=3pt]\textbf{Source of truth.} Runtime implementation lives under \code{backend/}, \code{frontend/}, \code{migrations/}, \code{k8s/}, and \code{helm/balkanid/}. Verification lives under \code{scripts/} and \code{frontend/tests/}. Supporting contracts and decisions live under \code{docs/}.\end{tcolorbox}
+\end{document}

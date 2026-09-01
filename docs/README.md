@@ -26,6 +26,7 @@ Read the [consolidated engineering documentation](PROJECT_DOCUMENTATION.md) for 
 - [Search performance evidence](performance/search-plan.md) - reproducible PostgreSQL query-plan baseline.
 - [Seed data](seed-data.md) and [UAT checklist](uat-checklist.md).
 - [AI methodology and prompts](ai-prompts.md).
+- [LaTeX hiring-task documentation](hiring-task-documentation.tex) - ordered product, core features, deliverables, infrastructure, bonus work, and screenshot placeholders.
 - [Living progress report](progress-report.tex).
 
 ## Change control
