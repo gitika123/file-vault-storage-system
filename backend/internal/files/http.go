@@ -504,7 +504,7 @@ func (h HTTPHandler) CreateDirectShare(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, ErrRecipientNotFound) {
 			status = 404
 			code = "NOT_FOUND"
-			msg = "Recipient not found."
+			msg = "No active File Vault account was found for this email. The recipient must sign up before you can grant direct access."
 		}
 		writeError(w, status, code, msg)
 		return
