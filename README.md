@@ -33,7 +33,7 @@ docker compose up --build -d
 
 Open <http://localhost:5173>.
 
-The API applies database migrations automatically on startup. Optional local seed data can be enabled with the seed variables documented in [docs/seed-data.md](docs/seed-data.md).
+The API applies database migrations automatically on startup. Optional local seed data can be enabled with the \`SEED_ALICE_PASSWORD\`, \`SEED_BOB_PASSWORD\`, and \`SEED_ADMIN_PASSWORD\` environment variables.
 
 Local administrator access:
 
