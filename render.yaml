@@ -1,0 +1,70 @@
+services:
+  - type: web
+    name: api
+    runtime: docker
+    plan: 0.5c-512mb
+    region: oregon
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health/live
+    disk:
+      name: vault-blobs
+      mountPath: /var/lib/balkanid/blobs
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vault-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: vault-redis
+          property: connectionString
+      - key: HTTP_ADDR
+        value: :8080
+      - key: BLOB_STORE_DRIVER
+        value: local
+      - key: BLOB_STORE_PATH
+        value: /var/lib/balkanid/blobs
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: API_RATE_PER_SECOND
+        value: "2"
+      - key: API_RATE_BURST
+        value: "4"
+      - key: USER_QUOTA_BYTES
+        value: "10485760"
+      - key: SESSION_SECRET
+        sync: false
+      - key: CSRF_SECRET
+        sync: false
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: PUBLIC_SHARE_BASE_URL
+        sync: false
+
+  - type: web
+    name: frontend
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: frontend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+
+  - type: keyvalue
+    name: vault-redis
+    plan: free
+    region: oregon
+    maxmemoryPolicy: noeviction
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Render services
+
+databases:
+  - name: vault-db
+    plan: free
+    region: oregon
+    databaseName: vault
+    user: vault
