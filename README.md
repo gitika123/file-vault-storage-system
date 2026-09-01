@@ -67,7 +67,6 @@ frontend/      React application and browser tests
 migrations/    PostgreSQL schema migrations
 tests/         Upload fixtures
 scripts/       Local verification scripts
-docs/          Hiring-task documentation and technical contracts
 k8s/           Kubernetes manifests
 helm/          Helm chart
 
