@@ -1,55 +1,72 @@
-# BalkanID Secure File Vault
+# File Vault
 
-A production-minded secure file vault built for the BalkanID Full Stack Engineering hiring task. It provides authenticated upload, content-addressed deduplication, owner-scoped management, controlled sharing, search, quotas, storage analytics, and administrator oversight.
+Secure multi-user file storage with folders, sharing, deduplication, search, quotas, and administrator oversight.
 
-## Current status
+## Features
 
-All required core features are implemented and locally verified. Bonus work includes Docker Compose, CI/UAT automation, previews, RBAC, audit events, upload progress state, live admin visualizations, and Helm packaging. Render deployment remains an external release step requiring provider resources and production secrets; the process-local rate limiter and local blob store should be replaced with shared production services before running multiple API replicas. See the evidence and status in [`docs/DELIVERABLES.md`](docs/DELIVERABLES.md) and [`docs/ISSUES.md`](docs/ISSUES.md).
+- User registration, sign-in, sessions, CSRF protection, and role-based access.
+- Single and multiple uploads, drag-and-drop, MIME validation, and upload limits.
+- SHA-256 content deduplication with reference counting and storage statistics.
+- File metadata, previews, downloads, tags, folders, rename, move, and deletion rules.
+- Private files and folders, public links, direct user sharing, permissions, and revocation.
+- Filename search and combined MIME, size, date, tag, and uploader filters.
+- Per-user API rate limiting and storage quotas with structured error responses.
+- User storage analytics and a protected administrator inventory and statistics view.
 
-Start with the [consolidated engineering documentation](docs/PROJECT_DOCUMENTATION.md), which brings together setup, architecture, schema, API behavior, requirements coverage, verification, deployment, and AI methodology. The [documentation hub](docs/README.md), [deliverables matrix](docs/DELIVERABLES.md), and [living progress report](docs/progress-report.tex) remain available as supporting records.
+## Stack
 
-## Runtime architecture
+- Go REST API
+- React, TypeScript, and Vite frontend
+- PostgreSQL for metadata and relationships
+- Redis for shared rate-limit state
+- Local or S3-compatible blob storage
+- Docker Compose, Kubernetes manifests, Helm chart, and GitHub Actions
 
-- Go REST API; GraphQL SDL is retained as a documented alternative contract because the brief accepts REST and marks GraphQL as preferred.
-- PostgreSQL for relational metadata, sessions, sharing, audit events, and transactional blob references.
-- Local content-addressed blob storage for development and Docker; production should use a persistent disk or object storage adapter.
-- React, TypeScript, and Vite frontend served by Nginx.
-- Configurable per-user in-memory limiter; Redis is included in Compose and distributed limiter hardening is tracked separately.
+## Run locally
 
-## Quick start
-
-1. Copy `.env.example` to `.env` and set strong local values.
-2. Start Docker Desktop.
-3. Run:
+Requirements: Docker Desktop with the engine running.
 
 ```powershell
+Copy-Item .env.example .env
 docker compose up --build -d
 ```
 
-4. Open <http://localhost:5173>.
+Open <http://localhost:5173>.
 
-The API container runs the idempotent demo seed command at startup. See [`docs/seed-data.md`](docs/seed-data.md) for local accounts. Stop services with `docker compose down`; use `-v` only when intentionally discarding local volumes.
+The API applies database migrations automatically on startup. Optional local seed data can be enabled with the seed variables documented in [docs/seed-data.md](docs/seed-data.md).
 
-## Native verification
+Stop the stack:
+
+```powershell
+docker compose down
+```
+
+Use `docker compose down -v` only when you intend to remove local database and file-storage volumes.
+
+## Verify
 
 ```powershell
 .\scripts\verify.ps1
+.\scripts\core-smoke.ps1
 ```
 
-This runs backend tests and the frontend production build. CI additionally runs formatting checks and Playwright UAT.
+The CI workflow also runs `go vet`, Go tests, frontend linting, TypeScript checks, the production build, Playwright UAT, and Docker build validation.
 
-## Repository map
+## Repository layout
 
 ```text
-backend/       Go API, domain services, auth, storage, and seed command
-frontend/      React/TypeScript application and Playwright tests
-docs/          Documentation hub, contracts, ADRs, issues, UAT, and report
-migrations/    Forward-only PostgreSQL migrations
+backend/       Go API and domain services
+frontend/      React application and browser tests
+migrations/    PostgreSQL schema migrations
+tests/         Upload fixtures
+scripts/       Local verification scripts
+docs/          Hiring-task documentation and technical contracts
 k8s/           Kubernetes manifests
-scripts/       Local verification helpers
-tests/         Shared upload and API fixtures
+helm/          Helm chart
 ```
 
-## Engineering workflow
+## Documentation
 
-Use the issue-driven workflow in [`docs/ISSUES.md`](docs/ISSUES.md): define acceptance criteria, implement in the intended module, verify with automated/live checks, record evidence, and then close the issue.
+The complete hiring-task document is [docs/hiring-task-documentation.tex](docs/hiring-task-documentation.tex). It covers the product, technology, core features, deliverables, infrastructure, bonus work, verification, and AI-assisted methodology.
+
+Supporting API, schema, storage, deployment, testing, and configuration references are under [docs/](docs/).
