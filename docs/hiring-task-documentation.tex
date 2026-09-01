@@ -2,11 +2,12 @@
 % Compile with: pdflatex hiring-task-documentation.tex (run twice for references).
 \documentclass[11pt,a4paper]{article}
 \usepackage[margin=0.82in,headheight=15pt]{geometry}
-\usepackage[T1]{fontenc}\usepackage{lmodern}\usepackage{microtype}
+\usepackage[utf8]{inputenc}\usepackage[T1]{fontenc}\usepackage{textcomp}\usepackage{lmodern}\usepackage{microtype}
 \usepackage{booktabs}\usepackage{tabularx}\usepackage{longtable}\usepackage{array}
 \usepackage{enumitem}\usepackage{xcolor}\usepackage{listings}\usepackage{tcolorbox}\usepackage{tikz}\usepackage{graphicx}
+\tcbuselibrary{skins}
 \usetikzlibrary{arrows.meta,positioning,fit,calc}
-\usepackage{titlesec}\usepackage{fancyhdr}\usepackage{float}\usepackage{lastpage}\usepackage{hyperref}
+\usepackage{titlesec}\usepackage{fancyhdr}\usepackage{float}\usepackage{hyperref}
 
 \definecolor{navy}{HTML}{080A25}\definecolor{ink}{HTML}{101D35}\definecolor{indigo}{HTML}{4354D8}
 \definecolor{cyan}{HTML}{54D8E5}\definecolor{muted}{HTML}{71809A}\definecolor{wash}{HTML}{F4F6FB}
@@ -17,14 +18,14 @@
 \setlength{\parindent}{0pt}\setlength{\parskip}{6pt}
 \setlist[itemize]{leftmargin=1.4em,itemsep=2pt,topsep=3pt}\setlist[enumerate]{leftmargin=1.6em,itemsep=3pt,topsep=3pt}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
-\pagestyle{fancy}\fancyhf{}\fancyhead[L]{\color{indigo}\small\textbf{FILE VAULT} \;|\; ENGINEERING DOCUMENTATION}\fancyhead[R]{\color{muted}\small Technical review}\fancyfoot[C]{\color{muted}\small\thepage\ of \pageref{LastPage}}
+\pagestyle{fancy}\fancyhf{}\fancyhead[L]{\color{indigo}\small\textbf{FILE VAULT} \;|\; ENGINEERING DOCUMENTATION}\fancyhead[R]{\color{muted}\small Technical review}\fancyfoot[C]{\color{muted}\small\thepage}
 \renewcommand{\headrulewidth}{0.4pt}\renewcommand{\footrulewidth}{0pt}
 \titleformat{\section}{\Large\bfseries\color{indigo}}{\thesection}{0.7em}{}\titleformat{\subsection}{\large\bfseries\color{ink}}{\thesubsection}{0.7em}{}\titleformat{\subsubsection}{\normalsize\bfseries\color{indigo}}{\thesubsubsection}{0.7em}{}
 \titlespacing*{\section}{0pt}{22pt}{8pt}\titlespacing*{\subsection}{0pt}{14pt}{5pt}
 \lstset{basicstyle=\ttfamily\small,breaklines=true,columns=fullflexible,backgroundcolor=\color{wash},frame=single,rulecolor=\color{line},framerule=0.4pt,showstringspaces=false}
 \newcommand{\status}[1]{\textcolor{success}{\textbf{#1}}}\newcommand{\code}[1]{\texttt{\small #1}}
-\newcommand{\featurebadge}[2]{\fcolorbox{#1}{#1!12}{\textcolor{#1}{\textbf{\small #2}}}}
-\newcommand{\shot}[2]{\begin{figure}[H]\centering\fcolorbox{line}{wash}{\parbox[c][1.45in][c]{0.91\textwidth}{\centering\textcolor{muted}{\textbf{Screenshot placeholder: #1}}\\[4pt]\small #2\\[4pt]\texttt{Replace this box with the final PNG or JPG.}}\caption{#1}\end{figure}}
+\newcommand{\featurebadge}[2]{\fcolorbox{#1}{wash}{\textcolor{#1}{\textbf{\small #2}}}}
+\newcommand{\shot}[2]{\begin{figure}[H]\centering\fcolorbox{line}{wash}{\parbox[c][1.45in][c]{0.91\textwidth}{\centering\textcolor{muted}{\textbf{Screenshot placeholder: #1}}\\[4pt]\small #2\\[4pt]\texttt{Replace this box with the final PNG or JPG.}}}\caption{#1}\end{figure}}
 
 \begin{document}
 \begin{titlepage}\thispagestyle{empty}\vspace*{0.7in}\begin{center}
@@ -35,10 +36,10 @@
 \end{center}\vfill
 \begin{tabularx}{\textwidth}{P{0.26\textwidth}Y}\toprule
 \textbf{Document purpose} & Reviewer-facing explanation of product intent, implementation, infrastructure, verification, and hiring-task deliverables.\\
-\midrule\textbf{Application} & File Vault — a secure file storage and sharing system.\\
+\midrule\textbf{Application} & File Vault --- a secure file storage and sharing system.\\
 \textbf{Technology} & Go REST API, React/TypeScript frontend, PostgreSQL, Redis, Docker, Kubernetes, Helm, and GitHub Actions.\\
 \textbf{Status} & Core requirements implemented; local/container verification completed; a free Render prototype deployment is live.\\
-\bottomrule\end{tabularx}\vspace{0.25in}\begin{center}\textcolor{muted}{\small Prepared for technical review \;•\; Version 1.0 \;•\; \today}\end{center}\end{titlepage}
+\bottomrule\end{tabularx}\vspace{0.25in}\begin{center}\textcolor{muted}{\small Prepared for technical review \;\textbullet\; Version 1.0 \;\textbullet\; \today}\end{center}\end{titlepage}
 \tableofcontents\newpage
 
 \begin{tcolorbox}[enhanced,colback=lavender,colframe=indigo,boxrule=0.7pt,arc=5pt,left=10pt,right=10pt,top=8pt,bottom=8pt]
@@ -48,9 +49,9 @@
 \vspace{6pt}
 \begin{center}
 \begin{tikzpicture}[box/.style={rounded corners=5pt,minimum width=0.29\textwidth,minimum height=0.78in,align=center,font=\small\bfseries,inner sep=7pt}, every path/.style={-Latex,very thick,draw=muted}]
-\node[box,fill=cyan!22,draw=cyan!70!black] (core) {CORE FEATURES\\[-1pt]\normalfont\scriptsize Uploads • search • sharing\\folders • quotas • statistics};
-\node[box,fill=gold!27,draw=gold!70!black,right=8pt of core] (deliv) {DELIVERABLES\\[-1pt]\normalfont\scriptsize Go API • React UI • schema\\Docker • tests • documentation};
-\node[box,fill=violet!16,draw=violet!75!black,right=8pt of deliv] (bonus) {BONUS POINTS\\[-1pt]\normalfont\scriptsize Kubernetes • Helm • CI/CD\\UAT • SSE • scale evidence};
+\node[box,fill=cyan!22,draw=cyan!70!black] (core) {CORE FEATURES\\[-1pt]\normalfont\scriptsize Uploads \textbullet\ search \textbullet\ sharing\\folders \textbullet\ quotas \textbullet\ statistics};
+\node[box,fill=gold!27,draw=gold!70!black,right=8pt of core] (deliv) {DELIVERABLES\\[-1pt]\normalfont\scriptsize Go API \textbullet\ React UI \textbullet\ schema\\Docker \textbullet\ tests \textbullet\ documentation};
+\node[box,fill=violet!16,draw=violet!75!black,right=8pt of deliv] (bonus) {BONUS POINTS\\[-1pt]\normalfont\scriptsize Kubernetes \textbullet\ Helm \textbullet\ CI/CD\\UAT \textbullet\ SSE \textbullet\ scale evidence};
 \end{tikzpicture}
 \end{center}
 \vspace{4pt}
@@ -76,10 +77,10 @@ The product also addresses real file-platform concerns. Identical content is sto
 \begin{center}
 \begin{tikzpicture}[node distance=10pt and 13pt,svc/.style={rounded corners=5pt,draw=indigo!65!black,very thick,minimum width=1.45in,minimum height=0.62in,align=center,font=\small\bfseries},store/.style={rounded corners=5pt,draw=success!75!black,very thick,minimum width=1.45in,minimum height=0.62in,align=center,font=\small\bfseries},arr/.style={-Latex,very thick,draw=muted}]
 \node[svc,fill=cyan!24] (ui) {React / TypeScript\\\normalfont\scriptsize User + Admin UI};
-\node[svc,fill=violet!16,right=of ui] (api) {Go REST API\\\normalfont\scriptsize Auth • policy • services};
-\node[store,fill=gold!28,right=of api] (db) {PostgreSQL\\\normalfont\scriptsize Metadata • ownership};
-\node[store,fill=mint,below=of db] (blob) {Blob adapter\\\normalfont\scriptsize SHA-256 • local / S3};
-\node[store,fill=peach,below=of api] (redis) {Redis / Key Value\\\normalfont\scriptsize Rate limits • cache};
+\node[svc,fill=violet!16,right=of ui] (api) {Go REST API\\\normalfont\scriptsize Auth \textbullet\ policy \textbullet\ services};
+\node[store,fill=gold!28,right=of api] (db) {PostgreSQL\\\normalfont\scriptsize Metadata \textbullet\ ownership};
+\node[store,fill=mint,below=of db] (blob) {Blob adapter\\\normalfont\scriptsize SHA-256 \textbullet\ local / S3};
+\node[store,fill=peach,below=of api] (redis) {Redis / Key Value\\\normalfont\scriptsize Rate limits \textbullet\ cache};
 \draw[arr] (ui) -- node[above,font=\scriptsize]{same-origin HTTPS} (api);
 \draw[arr] (api) -- (db);
 \draw[arr] (api) -- (blob);
@@ -209,7 +210,7 @@ Raw Kubernetes manifests are in \code{k8s/}; the Helm chart is in \code{helm/bal
 
 \section{Configuration and operational notes}
 \begin{tabularx}{\textwidth}{P{0.33\textwidth}P{0.18\textwidth}Y}\toprule\textbf{Variable}&\textbf{Default}&\textbf{Purpose}\\\midrule
-\code{API\_RATE\_PER\_SECOND}&2&Per-user steady-state API rate.\\\code{API\_RATE\_BURST}&4&Short burst allowance; set to 2 where strict two-call windows are required.\\\code{USER\_QUOTA\_BYTES}&10485760&Default logical quota: 10 MiB per user.\\\code{MAX\_FILE\_BYTES}&10485760&Maximum individual file size.\\\code{MAX\_UPLOAD\_BYTES}&52428800&Maximum multipart request size.\\\code{BLOB\_STORE\_DRIVER}&local&Set to \code{s3} for shared object storage.\\\code{REDIS\_URL}&—&Enables shared distributed rate-limiter state.\\\code{COOKIE\_SECURE}&false&Set true behind HTTPS.\\\bottomrule\end{tabularx}
+\code{API\_RATE\_PER\_SECOND}&2&Per-user steady-state API rate.\\\code{API\_RATE\_BURST}&4&Short burst allowance; set to 2 where strict two-call windows are required.\\\code{USER\_QUOTA\_BYTES}&10485760&Default logical quota: 10 MiB per user.\\\code{MAX\_FILE\_BYTES}&10485760&Maximum individual file size.\\\code{MAX\_UPLOAD\_BYTES}&52428800&Maximum multipart request size.\\\code{BLOB\_STORE\_DRIVER}&local&Set to \code{s3} for shared object storage.\\\code{REDIS\_URL}&---&Enables shared distributed rate-limiter state.\\\code{COOKIE\_SECURE}&false&Set true behind HTTPS.\\\bottomrule\end{tabularx}
 
 For a cloud launch, configure provider resources and secrets outside the repository. Render deployment is an external bonus step and requires a connected GitHub repository, managed PostgreSQL, Redis-compatible Key Value, shared object storage, strong session/CSRF secrets, a public origin, and routing that keeps frontend/API authentication on a compatible origin.
 
