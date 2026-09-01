@@ -88,6 +88,38 @@ Visualization&Recharts&Responsive user and administrator storage, deduplication,
 Testing&Go test, vet, race detector, Playwright&Unit, integration, authorization, upload, MIME, deduplication, UAT, and smoke verification.\\
 Delivery&Docker, Kubernetes, Helm, GitHub Actions&Reproducible containers, deployment manifests, charts, CI checks, and image builds.\\\bottomrule\end{tabularx}
 
+\section{Project setup}
+\subsection{Run the complete stack}
+The quickest local setup uses Docker Desktop. Start the Docker engine, copy the example environment file, and bring up the services:
+\begin{lstlisting}[language=bash]
+Copy-Item .env.example .env
+docker compose up --build -d
+docker compose ps
+\end{lstlisting}
+Open \code{http://localhost:5173}. Compose starts PostgreSQL, Redis, the Go API, and the Nginx frontend. The API applies database migrations during startup. The local administrator seed is optional and reads its credentials from runtime environment variables; the local evaluation values are documented in \code{docs/seed-data.md}.
+
+\subsection{Run the services separately}
+For backend work, start PostgreSQL and Redis first, set \code{DATABASE\_URL} and \code{REDIS\_URL}, then run the API from \code{backend/}. For frontend work, install dependencies and start Vite from \code{frontend/}:
+\begin{lstlisting}[language=bash]
+# terminal 1
+cd backend
+go run ./cmd/api
+
+# terminal 2
+cd frontend
+npm ci
+npm run dev
+\end{lstlisting}
+The frontend development server proxies API requests according to its local configuration. Use the Compose path when you need the same proxy, storage, and dependency layout as the full application.
+
+\subsection{Verify the setup}
+After the services are healthy, run the repository checks:
+\begin{lstlisting}[language=powershell]
+.\scripts\verify.ps1
+.\scripts\core-smoke.ps1
+\end{lstlisting}
+The checks cover formatting, \code{go vet}, backend tests, frontend linting and build checks, Docker image validation, and the core application smoke flow. The deployment guide in \code{docs/deployment.md} covers Kubernetes, Helm, and Render configuration.
+
 \section{Core features and implementation}
 The following sections map the hiring-task requirements to the implementation.
 
@@ -184,6 +216,17 @@ Raw Kubernetes manifests live in \code{k8s/}; the Helm chart lives in \code{helm
 \end{itemize}
 
 \section{Verification}
+\subsection{Evaluation criteria}
+The implementation is organized around the criteria used to evaluate the submission:
+\begin{itemize}
+\item \textbf{Correctness:} tests and smoke checks verify uploads, ownership, sharing, quotas, deduplication, search, statistics, and administration.
+\item \textbf{Code quality:} the Go API separates handlers, services, policies, storage adapters, and persistence; the frontend keeps typed API access and reusable UI components.
+\item \textbf{Design choices:} PostgreSQL stores durable metadata, content-addressed blobs avoid duplicate physical storage, Redis supports shared rate limits, and the storage interface allows local or S3-compatible backends.
+\item \textbf{UI/UX:} the frontend provides separate user and administrator areas, clear empty/loading/error states, keyboard-friendly actions, responsive layouts, folder context menus, drag-and-drop upload, and visual storage analytics.
+\item \textbf{Documentation:} this document, the README, API contracts, schema notes, storage notes, deployment guide, and UAT checklist explain setup, behavior, and extension points.
+\item \textbf{Creativity:} folder sharing, revocation, public download counters, live activity updates, deduplication analytics, preview support, Kubernetes, Helm, and CI/CD extend the required feature set.
+\end{itemize}
+
 \begin{itemize}
 \item Backend checks include \code{gofmt}, \code{go vet ./...}, Go tests, and race-oriented coverage.
 \item Frontend checks include dependency installation, ESLint, TypeScript compilation, Vite production build, and Playwright UAT.
