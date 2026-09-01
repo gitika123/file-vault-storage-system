@@ -13,4 +13,4 @@ Supporting implementation references:
 - [Deployment](deployment.md)
 - [Seed data](seed-data.md)
 - [UAT checklist](uat-checklist.md)
-- [AI prompts and methodology](ai-prompts.md)
+- AI-assisted engineering prompts and usage guidance are included in [hiring-task-documentation.tex](hiring-task-documentation.tex).

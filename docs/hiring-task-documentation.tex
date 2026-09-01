@@ -183,7 +183,7 @@ Raw Kubernetes manifests are in \code{k8s/}; the Helm chart is in \code{helm/bal
 \item \textbf{Scale evidence:} cursor pagination, parameterized queries, search indexes, documented query-plan evidence, Redis limiter support, and S3-compatible storage adapter.
 \end{itemize}
 
-\section{Verification and evidence}
+\section{Verification}
 \begin{itemize}
 \item Backend checks include \code{gofmt}, \code{go vet ./...}, Go tests, and race-oriented coverage.
 \item Frontend checks include dependency installation, ESLint, TypeScript compilation, Vite production build, and Playwright UAT.
@@ -193,8 +193,32 @@ Raw Kubernetes manifests are in \code{k8s/}; the Helm chart is in \code{helm/bal
 \end{itemize}
 
 \section{AI-assisted engineering methodology}
-AI was used as a productivity aid for requirement decomposition, implementation proposals, test-case generation, security review, UI review, and documentation drafting. The methodology remained human-directed and evidence-based:
-\begin{enumerate}\item Convert the brief into dependency-ordered issues and acceptance criteria.\item Give the assistant one bounded issue at a time with repository and security constraints.\item Request the smallest reviewable change in the correct module.\item Inspect the diff and review authorization, transactions, error handling, and data exposure.\item Add focused tests for success, failure, authorization, boundaries, and concurrency.\item Re-run deterministic checks and update documentation only when runtime evidence supports the claim.\end{enumerate}
-Reusable prompt patterns and the complete methodology are recorded in \code{docs/ai-prompts.md} and \code{docs/ai-methodology.md}. No production credentials, tokens, private files, or secret values are included in source control.
+AI was used as a controlled engineering aid for requirement decomposition, implementation proposals, test generation, security review, UI review, and documentation drafting. The following prompts describe the project workflow without including private conversation history or credentials.
+
+\subsection{How prompts were used}
+Each prompt was given one bounded requirement at a time with the relevant repository context and acceptance criteria. The resulting proposal was reviewed by a human, implemented in the appropriate module, tested, and checked against the running application before being described as complete. Secrets, tokens, passwords, and private files were never included in prompts.
+
+\subsection{Project prompts}
+\begin{description}[style=nextline,leftmargin=0pt,labelindent=0pt]
+\item[Requirement decomposition]
+\textit{Review the product brief and convert it into dependency-ordered requirements. Classify each item as core, deliverable, bonus, or blocked. Give each requirement observable acceptance criteria and a reproducible verification plan.}
+
+\item[Backend implementation]
+\textit{Implement this single requirement in the existing Go module. Preserve ownership checks, structured errors, parameterized SQL, transaction boundaries, configuration conventions, and existing API behavior. Add focused tests for success, failure, authorization, boundary, and concurrency cases. Do not modify unrelated modules.}
+
+\item[Database and scale review]
+\textit{Review this schema or query for ownership leaks, race conditions, rollback behavior, reference-count correctness, and index usage. Propose the smallest forward-only migration or query change, and explain how it will be verified with tests or an execution plan.}
+
+\item[Frontend implementation]
+\textit{Implement this user journey in the existing React and TypeScript design system. Cover loading, empty, error, success, keyboard, responsive, and authorization states. Keep API calls typed and add a browser test for the highest-value behavior.}
+
+\item[Security review]
+\textit{Review authentication, CSRF protection, authorization, file paths, MIME validation, token handling, headers, rate limiting, and error disclosure. Report the evidence, severity, exploit scenario, and smallest safe remediation for each issue.}
+
+\item[Final verification]
+\textit{Check the implementation against every acceptance criterion. Run focused checks and then the full verification suite. Report exact commands and results, distinguish verified behavior from assumptions, and identify any documentation claim that exceeds the available evidence.}
+\end{description}
+
+The final decision for scope, code changes, security, tests, and documentation remained human-controlled. No production credentials, tokens, private files, or secret values are included in source control.
 
 \end{document}
