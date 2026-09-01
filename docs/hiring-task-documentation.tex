@@ -18,7 +18,7 @@
 \setlength{\parindent}{0pt}\setlength{\parskip}{6pt}
 \setlist[itemize]{leftmargin=1.4em,itemsep=2pt,topsep=3pt}\setlist[enumerate]{leftmargin=1.6em,itemsep=3pt,topsep=3pt}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
-\pagestyle{fancy}\fancyhf{}\fancyhead[L]{\color{indigo}\small\textbf{FILE VAULT} \;|\; ENGINEERING DOCUMENTATION}\fancyhead[R]{\color{muted}\small Technical review}\fancyfoot[C]{\color{muted}\small\thepage}
+\pagestyle{fancy}\fancyhf{}\fancyhead[L]{\color{indigo}\small\textbf{FILE VAULT} \;|\; ENGINEERING DOCUMENTATION}\fancyfoot[C]{\color{muted}\small\thepage}
 \renewcommand{\headrulewidth}{0.4pt}\renewcommand{\footrulewidth}{0pt}
 \titleformat{\section}{\Large\bfseries\color{indigo}}{\thesection}{0.7em}{}\titleformat{\subsection}{\large\bfseries\color{ink}}{\thesubsection}{0.7em}{}\titleformat{\subsubsection}{\normalsize\bfseries\color{indigo}}{\thesubsubsection}{0.7em}{}
 \titlespacing*{\section}{0pt}{22pt}{8pt}\titlespacing*{\subsection}{0pt}{14pt}{5pt}
@@ -35,26 +35,11 @@
 \fcolorbox{line}{wash}{\parbox{0.82\textwidth}{\centering\small\color{ink}File Vault gives users a private workspace for uploading, organizing, searching, sharing, previewing, and downloading files. It records ownership and provenance, deduplicates identical content, enforces quotas and rate limits, and gives administrators a protected oversight view.}}
 \end{center}\vfill
 \begin{tabularx}{\textwidth}{P{0.26\textwidth}Y}\toprule
-\textbf{Document purpose} & Reviewer-facing explanation of product intent, implementation, infrastructure, verification, and hiring-task deliverables.\\
 \midrule\textbf{Application} & File Vault --- a secure file storage and sharing system.\\
-\textbf{Technology} & Go REST API, React/TypeScript frontend, PostgreSQL, Redis, Docker, Kubernetes, Helm, and GitHub Actions.\\
-\textbf{Status} & Core requirements implemented; local/container verification completed; a free Render prototype deployment is live.\\
-\bottomrule\end{tabularx}\vspace{0.25in}\begin{center}\textcolor{muted}{\small Prepared for technical review \;\textbullet\; Version 1.0 \;\textbullet\; \today}\end{center}\end{titlepage}
+\textbf{Technology} & Go REST API, React and TypeScript frontend, PostgreSQL, Redis, Docker, Kubernetes, Helm, and GitHub Actions.\\
+\bottomrule\end{tabularx}\vspace{0.25in}\end{titlepage}
 \tableofcontents\newpage
 
-\begin{tcolorbox}[enhanced,colback=lavender,colframe=indigo,boxrule=0.7pt,arc=5pt,left=10pt,right=10pt,top=8pt,bottom=8pt]
-{\Large\color{navy}\textbf{At a glance}}\\[-2pt]
-\small This report maps the hiring brief to the implemented product, delivery artifacts, infrastructure, and verification evidence. The three sections below are the reviewer's quickest path through the submission.
-\end{tcolorbox}
-\vspace{6pt}
-\begin{center}
-\begin{tikzpicture}[box/.style={rounded corners=5pt,minimum width=0.29\textwidth,minimum height=0.78in,align=center,font=\small\bfseries,inner sep=7pt}, every path/.style={-Latex,very thick,draw=muted}]
-\node[box,fill=cyan!22,draw=cyan!70!black] (core) {CORE FEATURES\\[-1pt]\normalfont\scriptsize Uploads \textbullet\ search \textbullet\ sharing\\folders \textbullet\ quotas \textbullet\ statistics};
-\node[box,fill=gold!27,draw=gold!70!black,right=8pt of core] (deliv) {DELIVERABLES\\[-1pt]\normalfont\scriptsize Go API \textbullet\ React UI \textbullet\ schema\\Docker \textbullet\ tests \textbullet\ documentation};
-\node[box,fill=violet!16,draw=violet!75!black,right=8pt of deliv] (bonus) {BONUS POINTS\\[-1pt]\normalfont\scriptsize Kubernetes \textbullet\ Helm \textbullet\ CI/CD\\UAT \textbullet\ SSE \textbullet\ scale evidence};
-\end{tikzpicture}
-\end{center}
-\vspace{4pt}
 \begin{tcolorbox}[enhanced,colback=peach,colframe=coral,boxrule=0.7pt,arc=5pt,left=10pt,right=10pt,top=7pt,bottom=7pt]
 \textcolor{coral}{\textbf{How to read this document:}} Core features establish product behavior; deliverables point to the submitted artifacts; bonus points identify work beyond the mandatory path. Each item states the implementation and the evidence location.
 \end{tcolorbox}
@@ -79,9 +64,9 @@ The product also addresses real file-platform concerns. Identical content is sto
 \node[svc,fill=cyan!24] (ui) {React / TypeScript\\\normalfont\scriptsize User + Admin UI};
 \node[svc,fill=violet!16,right=of ui] (api) {Go REST API\\\normalfont\scriptsize Auth \textbullet\ policy \textbullet\ services};
 \node[store,fill=gold!28,right=of api] (db) {PostgreSQL\\\normalfont\scriptsize Metadata \textbullet\ ownership};
-\node[store,fill=mint,below=of db] (blob) {Blob adapter\\\normalfont\scriptsize SHA-256 \textbullet\ local / S3};
+\node[store,fill=mint,below=of db] (blob) {Blob adapter\\\normalfont\scriptsize SHA-256 \textbullet\ S3 in production};
 \node[store,fill=peach,below=of api] (redis) {Redis / Key Value\\\normalfont\scriptsize Rate limits \textbullet\ cache};
-\draw[arr] (ui) -- node[above,font=\scriptsize]{same-origin HTTPS} (api);
+\draw[arr] (ui) -- node[above=4pt,fill=white,inner sep=2pt,font=\scriptsize]{same-origin HTTPS} (api);
 \draw[arr] (api) -- (db);
 \draw[arr] (api) -- (blob);
 \draw[arr] (api) -- (redis);
@@ -97,25 +82,22 @@ API&REST over HTTP&Authentication, uploads, file management, folders, sharing, c
 Frontend&React + TypeScript + Vite&Responsive vault UI, authentication, upload/drop interaction, filters, file details, sharing, folders, admin tabs, and charts.\\
 Database&PostgreSQL&Users, sessions, files, blobs, folders, tags, shares, downloads, audit events, migrations, and indexes.\\
 Cache/limits&Redis&Shared rate-limiter state for multi-replica deployments; local fallback for evaluation.\\
-Blob storage&Local / S3-compatible adapter&Content-addressed blobs for local Compose or shared object storage in production.\\
+Blob storage&S3-compatible adapter in production; local adapter for development&Content-addressed blobs use shared object storage in production and local disk only for local Compose.\\
 Visualization&Recharts&Responsive user and administrator storage, deduplication, quota, and activity visualizations.\\
 Testing&Go test, vet, race detector, Playwright&Unit, integration, authorization, upload, MIME, deduplication, UAT, and smoke verification.\\
 Delivery&Docker, Kubernetes, Helm, GitHub Actions&Reproducible containers, deployment manifests, charts, CI checks, and image builds.\\\bottomrule\end{tabularx}
 
 \section{Core features and implementation}
-\begin{tcolorbox}[enhanced,colback=cyan!10,colframe=cyan!70!black,boxrule=0.8pt,arc=5pt,left=10pt,right=10pt,top=7pt,bottom=7pt]
-\featurebadge{cyan!70!black}{MANDATORY PRODUCT SCOPE}\quad\textbf{Core features}\quad\small Every requirement below is mapped to observable behavior and an implementation detail.
-\end{tcolorbox}
 This section follows the core feature categories from the hiring task and states how each requirement is implemented.
 
 \subsection{File uploads}
 \textbf{Requirement.} Support single and multiple file uploads, drag-and-drop upload in the frontend, and content validation against the declared MIME type.
 
-\textbf{Implementation.} The frontend uses a multiple-file input and a global drag/drop guard that prevents browser navigation when files are dropped anywhere in the vault. The upload service streams multipart content with bounded request and per-file limits, calculates SHA-256 during ingestion, checks signatures and format structure against the declared MIME type, and returns a per-file result so a mixed batch reports successes and rejections independently. Forged extensions or mismatched content are rejected before commit.
+\textbf{Implementation.} The frontend uses a multiple-file input and a global drag-and-drop guard that prevents browser navigation when files are dropped anywhere in the vault. The upload service streams multipart content with bounded request and per-file limits, calculates SHA-256 during ingestion, checks signatures and format structure against the declared MIME type, and returns a per-file result so a mixed batch reports successes and rejections independently. Forged extensions or mismatched content are rejected before commit.
 \shot{Upload and drag-and-drop}{Upload action in its resting state and a capture showing the drop target highlighted while files are dragged over the vault.}
 
 \subsection{File management and sharing}
-\textbf{Requirement.} Users can list and view owned files with detailed metadata; organize files into folders; share files and folders publicly or keep them private; optionally share directly with specific users; show public download counters; and allow only the uploader to delete a file.
+\textbf{Requirement.} Users can list and view owned files with detailed metadata; organize files into folders; share files and folders publicly or keep them private; share directly with specific users; show public download counters; and allow only the uploader to delete a file.
 
 \textbf{Implementation.} File metadata is owner-scoped and includes uploader identity, logical size, detected and declared MIME types, upload time, blob size, reference count, visibility, and download count. Folders are owner-scoped records with optional parent folders. Files can move between root and folders. Folder cards support open, rename, share, and delete through a context menu, including right-click behavior from the home inventory and folders view.
 
@@ -125,7 +107,7 @@ Public links use cryptographically random tokens whose hashes are persisted. Dir
 \subsection{Search and filtering}
 \textbf{Requirement.} Search by filename; filter by MIME type, size range, date range, tags, and uploader name; combine filters; optimize queries for scale.
 
-\textbf{Implementation.} The list endpoint accepts parameterized filters and bounded cursor pagination. Filename search uses PostgreSQL text search/index support, while owner, uploader, folder, upload date, MIME, size, and tag predicates are combined in one query. The frontend presents the requested categories: selectable MIME type, minimum and maximum bytes, uploaded-after and uploaded-before dates, tag, uploader name, plus filename search. The date fields represent the inclusive upload timestamp range; the backend normalizes them to UTC boundaries and rejects inverted ranges. Search-plan evidence is in \code{docs/performance/search-plan.md}.
+\textbf{Implementation.} The list endpoint accepts parameterized filters and bounded cursor pagination. Filename search uses PostgreSQL text search and index support, while owner, uploader, folder, upload date, MIME, size, and tag predicates are combined in one query. The frontend presents the requested categories: selectable MIME type, minimum and maximum bytes, uploaded-after and uploaded-before dates, tag, uploader name, plus filename search. The date fields represent the inclusive upload timestamp range; the backend normalizes them to UTC boundaries and rejects inverted ranges. Search-plan evidence is in \code{docs/performance/search-plan.md}.
 \shot{Search and filtering}{File inventory with filename search and MIME, size, date, tag, and uploader filters applied together.}
 
 \subsection{Rate limiting and quotas}
@@ -208,18 +190,9 @@ Raw Kubernetes manifests are in \code{k8s/}; the Helm chart is in \code{helm/bal
 \item Deployment artifacts are verified through Docker image builds, healthy Compose services, Kubernetes manifests, and Helm lint/template validation.
 \end{itemize}
 
-\section{Configuration and operational notes}
-\begin{tabularx}{\textwidth}{P{0.33\textwidth}P{0.18\textwidth}Y}\toprule\textbf{Variable}&\textbf{Default}&\textbf{Purpose}\\\midrule
-\code{API\_RATE\_PER\_SECOND}&2&Per-user steady-state API rate.\\\code{API\_RATE\_BURST}&4&Short burst allowance; set to 2 where strict two-call windows are required.\\\code{USER\_QUOTA\_BYTES}&10485760&Default logical quota: 10 MiB per user.\\\code{MAX\_FILE\_BYTES}&10485760&Maximum individual file size.\\\code{MAX\_UPLOAD\_BYTES}&52428800&Maximum multipart request size.\\\code{BLOB\_STORE\_DRIVER}&local&Set to \code{s3} for shared object storage.\\\code{REDIS\_URL}&---&Enables shared distributed rate-limiter state.\\\code{COOKIE\_SECURE}&false&Set true behind HTTPS.\\\bottomrule\end{tabularx}
-
-For a cloud launch, configure provider resources and secrets outside the repository. Render deployment is an external bonus step and requires a connected GitHub repository, managed PostgreSQL, Redis-compatible Key Value, shared object storage, strong session/CSRF secrets, a public origin, and routing that keeps frontend/API authentication on a compatible origin.
-
 \section{AI-assisted engineering methodology}
 AI was used as a productivity aid for requirement decomposition, implementation proposals, test-case generation, security review, UI review, and documentation drafting. The methodology remained human-directed and evidence-based:
 \begin{enumerate}\item Convert the brief into dependency-ordered issues and acceptance criteria.\item Give the assistant one bounded issue at a time with repository and security constraints.\item Request the smallest reviewable change in the correct module.\item Inspect the diff and review authorization, transactions, error handling, and data exposure.\item Add focused tests for success, failure, authorization, boundaries, and concurrency.\item Re-run deterministic checks and update documentation only when runtime evidence supports the claim.\end{enumerate}
 Reusable prompt patterns and the complete methodology are recorded in \code{docs/ai-prompts.md} and \code{docs/ai-methodology.md}. No credentials, tokens, private files, or secret values are included in source control.
 
-\section{Reviewer handoff}
-\begin{enumerate}\item Read this document for product intent, implementation coverage, deliverables, infrastructure, and bonus work.\item Follow \code{README.md} and \code{docs/deployment.md} to start the local stack.\item Inspect \code{docs/contracts/} and \code{migrations/} for API and schema details.\item Run \code{scripts/verify.ps1} and \code{scripts/core-smoke.ps1}.\item Run the Playwright UAT suite for the highest-value browser journeys.\end{enumerate}
-\begin{tcolorbox}[colback=wash,colframe=line,boxrule=0.4pt,arc=3pt]\textbf{Source of truth.} Runtime implementation lives under \code{backend/}, \code{frontend/}, \code{migrations/}, \code{k8s/}, and \code{helm/balkanid/}. Verification lives under \code{scripts/} and \code{frontend/tests/}. Supporting contracts and decisions live under \code{docs/}.\end{tcolorbox}
 \end{document}
