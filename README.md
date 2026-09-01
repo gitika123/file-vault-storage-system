@@ -35,6 +35,13 @@ Open <http://localhost:5173>.
 
 The API applies database migrations automatically on startup. Optional local seed data can be enabled with the seed variables documented in [docs/seed-data.md](docs/seed-data.md).
 
+Local administrator access:
+
+- Email: `admin@example.com`
+- Password: `AdminVault!2026`
+
+These credentials are for the local evaluation seed only. Use a different secret for any shared or production environment.
+
 Stop the stack:
 
 ```powershell
