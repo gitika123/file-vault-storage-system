@@ -4,12 +4,15 @@
 \usepackage[margin=0.82in,headheight=15pt]{geometry}
 \usepackage[T1]{fontenc}\usepackage{lmodern}\usepackage{microtype}
 \usepackage{booktabs}\usepackage{tabularx}\usepackage{longtable}\usepackage{array}
-\usepackage{enumitem}\usepackage{xcolor}\usepackage{listings}\usepackage{tcolorbox}
+\usepackage{enumitem}\usepackage{xcolor}\usepackage{listings}\usepackage{tcolorbox}\usepackage{tikz}\usepackage{graphicx}
+\usetikzlibrary{arrows.meta,positioning,fit,calc}
 \usepackage{titlesec}\usepackage{fancyhdr}\usepackage{float}\usepackage{lastpage}\usepackage{hyperref}
 
 \definecolor{navy}{HTML}{080A25}\definecolor{ink}{HTML}{101D35}\definecolor{indigo}{HTML}{4354D8}
 \definecolor{cyan}{HTML}{54D8E5}\definecolor{muted}{HTML}{71809A}\definecolor{wash}{HTML}{F4F6FB}
 \definecolor{line}{HTML}{DEE5F0}\definecolor{success}{HTML}{197B78}
+\definecolor{violet}{HTML}{B84DFF}\definecolor{coral}{HTML}{FF6B7A}\definecolor{gold}{HTML}{FFC857}
+\definecolor{mint}{HTML}{DDF8F1}\definecolor{lavender}{HTML}{EEE8FF}\definecolor{peach}{HTML}{FFF0E6}
 \hypersetup{colorlinks=true,linkcolor=indigo,urlcolor=indigo,pdftitle={File Vault - Product, Architecture, and Delivery Documentation},pdfauthor={Engineering}}
 \setlength{\parindent}{0pt}\setlength{\parskip}{6pt}
 \setlist[itemize]{leftmargin=1.4em,itemsep=2pt,topsep=3pt}\setlist[enumerate]{leftmargin=1.6em,itemsep=3pt,topsep=3pt}
@@ -20,6 +23,7 @@
 \titlespacing*{\section}{0pt}{22pt}{8pt}\titlespacing*{\subsection}{0pt}{14pt}{5pt}
 \lstset{basicstyle=\ttfamily\small,breaklines=true,columns=fullflexible,backgroundcolor=\color{wash},frame=single,rulecolor=\color{line},framerule=0.4pt,showstringspaces=false}
 \newcommand{\status}[1]{\textcolor{success}{\textbf{#1}}}\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\featurebadge}[2]{\fcolorbox{#1}{#1!12}{\textcolor{#1}{\textbf{\small #2}}}}
 \newcommand{\shot}[2]{\begin{figure}[H]\centering\fcolorbox{line}{wash}{\parbox[c][1.45in][c]{0.91\textwidth}{\centering\textcolor{muted}{\textbf{Screenshot placeholder: #1}}\\[4pt]\small #2\\[4pt]\texttt{Replace this box with the final PNG or JPG.}}\caption{#1}\end{figure}}
 
 \begin{document}
@@ -33,9 +37,26 @@
 \textbf{Document purpose} & Reviewer-facing explanation of product intent, implementation, infrastructure, verification, and hiring-task deliverables.\\
 \midrule\textbf{Application} & File Vault — a secure file storage and sharing system.\\
 \textbf{Technology} & Go REST API, React/TypeScript frontend, PostgreSQL, Redis, Docker, Kubernetes, Helm, and GitHub Actions.\\
-\textbf{Status} & Core requirements implemented; local/container verification completed; cloud deployment requires provider configuration.\\
+\textbf{Status} & Core requirements implemented; local/container verification completed; a free Render prototype deployment is live.\\
 \bottomrule\end{tabularx}\vspace{0.25in}\begin{center}\textcolor{muted}{\small Prepared for technical review \;•\; Version 1.0 \;•\; \today}\end{center}\end{titlepage}
 \tableofcontents\newpage
+
+\begin{tcolorbox}[enhanced,colback=lavender,colframe=indigo,boxrule=0.7pt,arc=5pt,left=10pt,right=10pt,top=8pt,bottom=8pt]
+{\Large\color{navy}\textbf{At a glance}}\\[-2pt]
+\small This report maps the hiring brief to the implemented product, delivery artifacts, infrastructure, and verification evidence. The three sections below are the reviewer's quickest path through the submission.
+\end{tcolorbox}
+\vspace{6pt}
+\begin{center}
+\begin{tikzpicture}[box/.style={rounded corners=5pt,minimum width=0.29\textwidth,minimum height=0.78in,align=center,font=\small\bfseries,inner sep=7pt}, every path/.style={-Latex,very thick,draw=muted}]
+\node[box,fill=cyan!22,draw=cyan!70!black] (core) {CORE FEATURES\\[-1pt]\normalfont\scriptsize Uploads • search • sharing\\folders • quotas • statistics};
+\node[box,fill=gold!27,draw=gold!70!black,right=8pt of core] (deliv) {DELIVERABLES\\[-1pt]\normalfont\scriptsize Go API • React UI • schema\\Docker • tests • documentation};
+\node[box,fill=violet!16,draw=violet!75!black,right=8pt of deliv] (bonus) {BONUS POINTS\\[-1pt]\normalfont\scriptsize Kubernetes • Helm • CI/CD\\UAT • SSE • scale evidence};
+\end{tikzpicture}
+\end{center}
+\vspace{4pt}
+\begin{tcolorbox}[enhanced,colback=peach,colframe=coral,boxrule=0.7pt,arc=5pt,left=10pt,right=10pt,top=7pt,bottom=7pt]
+\textcolor{coral}{\textbf{How to read this document:}} Core features establish product behavior; deliverables point to the submitted artifacts; bonus points identify work beyond the mandatory path. Each item states the implementation and the evidence location.
+\end{tcolorbox}
 
 \section{Product overview}
 \subsection{What the product is about}
@@ -51,6 +72,21 @@ The product also addresses real file-platform concerns. Identical content is sto
 \item A user shares a file or folder directly with another registered user or creates a public link, and can later revoke access.
 \item An administrator uploads and shares files, lists all workspace files with uploader details, and views protected usage, download, and deduplication statistics.
 \end{itemize}
+\subsection{Product architecture at a glance}
+\begin{center}
+\begin{tikzpicture}[node distance=10pt and 13pt,svc/.style={rounded corners=5pt,draw=indigo!65!black,very thick,minimum width=1.45in,minimum height=0.62in,align=center,font=\small\bfseries},store/.style={rounded corners=5pt,draw=success!75!black,very thick,minimum width=1.45in,minimum height=0.62in,align=center,font=\small\bfseries},arr/.style={-Latex,very thick,draw=muted}]
+\node[svc,fill=cyan!24] (ui) {React / TypeScript\\\normalfont\scriptsize User + Admin UI};
+\node[svc,fill=violet!16,right=of ui] (api) {Go REST API\\\normalfont\scriptsize Auth • policy • services};
+\node[store,fill=gold!28,right=of api] (db) {PostgreSQL\\\normalfont\scriptsize Metadata • ownership};
+\node[store,fill=mint,below=of db] (blob) {Blob adapter\\\normalfont\scriptsize SHA-256 • local / S3};
+\node[store,fill=peach,below=of api] (redis) {Redis / Key Value\\\normalfont\scriptsize Rate limits • cache};
+\draw[arr] (ui) -- node[above,font=\scriptsize]{same-origin HTTPS} (api);
+\draw[arr] (api) -- (db);
+\draw[arr] (api) -- (blob);
+\draw[arr] (api) -- (redis);
+\end{tikzpicture}
+\end{center}
+\begin{center}\textcolor{muted}{\scriptsize Bright nodes distinguish user experience, application policy, durable metadata, content storage, and shared runtime state.}\end{center}
 \shot{Product overview}{Authenticated home screen showing navigation, file inventory, storage cards, and the primary upload action.}
 
 \section{Technology stack}
@@ -66,6 +102,9 @@ Testing&Go test, vet, race detector, Playwright&Unit, integration, authorization
 Delivery&Docker, Kubernetes, Helm, GitHub Actions&Reproducible containers, deployment manifests, charts, CI checks, and image builds.\\\bottomrule\end{tabularx}
 
 \section{Core features and implementation}
+\begin{tcolorbox}[enhanced,colback=cyan!10,colframe=cyan!70!black,boxrule=0.8pt,arc=5pt,left=10pt,right=10pt,top=7pt,bottom=7pt]
+\featurebadge{cyan!70!black}{MANDATORY PRODUCT SCOPE}\quad\textbf{Core features}\quad\small Every requirement below is mapped to observable behavior and an implementation detail.
+\end{tcolorbox}
 This section follows the core feature categories from the hiring task and states how each requirement is implemented.
 
 \subsection{File uploads}
@@ -106,6 +145,9 @@ Public links use cryptographically random tokens whose hashes are persisted. Dir
 \shot{Administrator oversight}{Admin file inventory and separate Statistics tab with storage-efficiency, deduplication, activity, and download visualizations.}
 
 \section{Deliverables}
+\begin{tcolorbox}[enhanced,colback=gold!13,colframe=gold!70!black,boxrule=0.8pt,arc=5pt,left=10pt,right=10pt,top=7pt,bottom=7pt]
+\featurebadge{gold!70!black}{SUBMISSION ARTIFACTS}\quad\textbf{Deliverables}\quad\small The table below points reviewers to the code, infrastructure, contracts, and verification material included in the submission.
+\end{tcolorbox}
 \begin{longtable}{P{0.25\textwidth}P{0.17\textwidth}P{0.48\textwidth}}\toprule\textbf{Deliverable}&\textbf{Status}&\textbf{How it is delivered}\\\midrule
 Go backend&\status{Complete}&\code{backend/} contains API server, domain services, handlers, policies, health endpoints, configuration, logging, and tests.\\
 REST or GraphQL API&\status{Complete}&REST is the shipped runtime; a GraphQL SDL contract is retained because the brief accepts REST and prefers GraphQL.\\
@@ -118,6 +160,19 @@ Documentation&\status{Complete}&Contracts, database/storage notes, UAT checklist
 \subsection{Runtime orchestration}
 Docker Compose orchestrates PostgreSQL for relational state, Redis for shared limit state, the Go API for business logic, and Nginx serving the React build while proxying API/public-content requests. Health checks ensure the API starts after dependencies are ready. The API runs idempotent seed logic only when runtime seed variables are supplied; secrets and passwords are not stored in source control.
 
+\subsection{Upload and deduplication flow}
+\begin{center}
+\begin{tikzpicture}[node distance=8pt and 10pt,flow/.style={rounded corners=4pt,draw=indigo!65!black,very thick,minimum width=1.28in,minimum height=0.55in,align=center,font=\scriptsize\bfseries}, every path/.style={-Latex,very thick,draw=muted}]
+\node[flow,fill=cyan!24] (select) {Select / drop\\files};
+\node[flow,fill=peach,right=of select] (validate) {Validate MIME\\and limits};
+\node[flow,fill=gold!28,right=of validate] (hash) {Stream +\\SHA-256 hash};
+\node[flow,fill=violet!16,right=of hash] (lookup) {Lookup blob\\digest};
+\node[flow,fill=mint,right=of lookup] (link) {Store once or\\add reference};
+\draw (select) -- (validate) -- (hash) -- (lookup) -- (link);
+\end{tikzpicture}
+\end{center}
+\begin{center}\textcolor{muted}{\scriptsize Logical file rows preserve ownership and history; one physical blob may serve many references.}\end{center}
+
 \subsection{Data and storage orchestration}
 The database owns logical metadata and relationships. The blob adapter owns physical content. A file row references a content-addressed blob by digest; multiple file rows can reference one blob. Reference counts are updated transactionally, and deletion removes the physical object only after the final reference disappears. Production uses the S3-compatible adapter so multiple API replicas share the content plane.
 
@@ -128,6 +183,9 @@ Authentication uses Argon2id password hashes, database-backed sessions, HttpOnly
 Raw Kubernetes manifests are in \code{k8s/}; the Helm chart is in \code{helm/balkanid/}. They include API/frontend Deployments and Services, PostgreSQL, Ingress, ConfigMap, Secret template, probes, service account, and PVCs. A real cloud launch should use managed PostgreSQL, managed Redis/Key Value, shared object storage, TLS, external secrets, backups, and observability.
 
 \section{Bonus points implemented}
+\begin{tcolorbox}[enhanced,colback=violet!9,colframe=violet!75!black,boxrule=0.8pt,arc=5pt,left=10pt,right=10pt,top=7pt,bottom=7pt]
+\featurebadge{violet!75!black}{BEYOND THE CORE}\quad\textbf{Bonus coverage}\quad\small These items extend the mandatory product into deployment, scale, automation, and reviewer-friendly verification.
+\end{tcolorbox}
 \begin{itemize}
 \item \textbf{Folder organization:} owner-scoped/nested folders, file movement, rename/delete rules, context menus, public folder links, and direct folder sharing with inherited access.
 \item \textbf{Kubernetes:} Deployments, Services, Ingress, ConfigMap, Secret template, probes, PostgreSQL resources, and PVCs under \code{k8s/}.
