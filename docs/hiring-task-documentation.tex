@@ -25,7 +25,8 @@
 \lstset{basicstyle=\ttfamily\small,breaklines=true,columns=fullflexible,backgroundcolor=\color{wash},frame=single,rulecolor=\color{line},framerule=0.4pt,showstringspaces=false}
 \newcommand{\status}[1]{\textcolor{success}{\textbf{#1}}}\newcommand{\code}[1]{\texttt{\small #1}}
 \newcommand{\featurebadge}[2]{\fcolorbox{#1}{wash}{\textcolor{#1}{\textbf{\small #2}}}}
-\newcommand{\shot}[2]{\begin{figure}[H]\centering\fcolorbox{line}{wash}{\parbox[c][1.45in][c]{0.91\textwidth}{\centering\textcolor{muted}{\textbf{Screenshot placeholder: #1}}\\[4pt]\small #2\\[4pt]\texttt{Replace this box with the final PNG or JPG.}}}\caption{#1}\end{figure}}
+\graphicspath{{screenshots/}}
+\newcommand{\shot}[3]{\begin{figure}[H]\centering\includegraphics[width=0.91\textwidth,height=3.25in,keepaspectratio]{#2}\caption{#1}\label{fig:#3}\end{figure}}
 
 \begin{document}
 \begin{titlepage}\thispagestyle{empty}\vspace*{0.7in}\begin{center}
@@ -73,7 +74,7 @@ The product also addresses real file-platform concerns. Identical content is sto
 \end{tikzpicture}
 \end{center}
 \begin{center}\textcolor{muted}{\scriptsize Bright nodes distinguish user experience, application policy, durable metadata, content storage, and shared runtime state.}\end{center}
-\shot{Product overview}{Authenticated home screen showing navigation, file inventory, storage cards, and the primary upload action.}
+\shot{Product overview}{product-overview.png}{product-overview}
 
 \section{Technology stack}
 \begin{tabularx}{\textwidth}{P{0.22\textwidth}Y Y}\toprule\textbf{Layer}&\textbf{Technology}&\textbf{How it is used}\\\midrule
@@ -94,7 +95,7 @@ This section follows the core feature categories from the hiring task and states
 \textbf{Requirement.} Support single and multiple file uploads, drag-and-drop upload in the frontend, and content validation against the declared MIME type.
 
 \textbf{Implementation.} The frontend uses a multiple-file input and a global drag-and-drop guard that prevents browser navigation when files are dropped anywhere in the vault. The upload service streams multipart content with bounded request and per-file limits, calculates SHA-256 during ingestion, checks signatures and format structure against the declared MIME type, and returns a per-file result so a mixed batch reports successes and rejections independently. Forged extensions or mismatched content are rejected before commit.
-\shot{Upload and drag-and-drop}{Upload action in its resting state and a capture showing the drop target highlighted while files are dragged over the vault.}
+\shot{Upload and drag-and-drop}{upload-drag-drop.png}{upload-drag-drop}
 
 \subsection{File management and sharing}
 \textbf{Requirement.} Users can list and view owned files with detailed metadata; organize files into folders; share files and folders publicly or keep them private; share directly with specific users; show public download counters; and allow only the uploader to delete a file.
@@ -102,13 +103,13 @@ This section follows the core feature categories from the hiring task and states
 \textbf{Implementation.} File metadata is owner-scoped and includes uploader identity, logical size, detected and declared MIME types, upload time, blob size, reference count, visibility, and download count. Folders are owner-scoped records with optional parent folders. Files can move between root and folders. Folder cards support open, rename, share, and delete through a context menu, including right-click behavior from the home inventory and folders view.
 
 Public links use cryptographically random tokens whose hashes are persisted. Direct shares persist recipient and permission, inherit folder access for files inside a shared folder, and expose revocation. Private access is the default. Delete handlers enforce ownership, protect other users' files from deletion, and remove physical blobs only when the final logical reference is gone.
-\shot{File details and sharing}{File-details view showing uploader, MIME validation, deduplication references, folder movement, public-link copy, direct sharing, and revoke controls.}
+\shot{File details and sharing}{file-details-sharing.png}{file-details-sharing}
 
 \subsection{Search and filtering}
 \textbf{Requirement.} Search by filename; filter by MIME type, size range, date range, tags, and uploader name; combine filters; optimize queries for scale.
 
 \textbf{Implementation.} The list endpoint accepts parameterized filters and bounded cursor pagination. Filename search uses PostgreSQL text search and index support, while owner, uploader, folder, upload date, MIME, size, and tag predicates are combined in one query. The frontend presents the requested categories: selectable MIME type, minimum and maximum bytes, uploaded-after and uploaded-before dates, tag, uploader name, plus filename search. The date fields represent the inclusive upload timestamp range; the backend normalizes them to UTC boundaries and rejects inverted ranges. Search-plan evidence is in \code{docs/performance/search-plan.md}.
-\shot{Search and filtering}{File inventory with filename search and MIME, size, date, tag, and uploader filters applied together.}
+\shot{Search and filtering}{search-filtering.png}{search-filtering}
 
 \subsection{Rate limiting and quotas}
 \textbf{Requirement.} Enforce per-user API rate limits with a configurable default of 2 calls per second, configurable per-user storage quota with a default of 10 MB, and proper error codes/messages.
@@ -119,14 +120,14 @@ Public links use cryptographically random tokens whose hashes are persisted. Dir
 \textbf{Requirement.} Display total deduplicated storage used, original usage without deduplication, and savings in bytes and percentage.
 
 \textbf{Implementation.} Original usage is the sum of active logical file sizes owned by the user. Deduplicated usage sums distinct referenced blob sizes for that user. Savings bytes equal original usage minus deduplicated usage, and savings percentage is savings divided by original usage, with a zero-safe calculation. The user dashboard displays summary cards and visualizations; administrators see workspace-wide metrics, download totals, user counts, file counts, and visual analytics.
-\shot{Storage statistics}{User storage cards and visual analytics showing original versus deduplicated usage, savings, and quota consumption.}
+\shot{Storage statistics}{storage-statistics.png}{storage-statistics}
 
 \subsection{Admin panel}
 \textbf{Requirement.} Admins can upload files and share them with other users; the admin panel lists all files with uploader details; admins can view download counts and usage statistics.
 
 \textbf{Implementation.} Administrator routes are protected by RBAC. The administrator screen separates an admin home for upload/share actions, an all-files inventory with uploader name/email, MIME, size, date, and download count, and a Statistics tab with workspace usage and Recharts visualizations. Administrators can inspect and share files but cannot delete files owned by another user. Admin and user statistics use the same logical/physical semantics, scoped to their respective views.
 \textbf{Local evaluation access.} The seeded administrator account uses email \code{admin@example.com} and password \code{AdminVault!2026}. This credential is configured only for local evaluation and must be replaced before a shared or production deployment.
-\shot{Administrator oversight}{Admin file inventory and separate Statistics tab with storage-efficiency, deduplication, activity, and download visualizations.}
+\shot{Administrator oversight}{admin-oversight.png}{admin-oversight}
 
 \section{Deliverables}
 \begin{tcolorbox}[enhanced,colback=gold!13,colframe=gold!70!black,boxrule=0.8pt,arc=5pt,left=10pt,right=10pt,top=7pt,bottom=7pt]

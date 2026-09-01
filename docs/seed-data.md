@@ -1,6 +1,6 @@
 # Local demo seed data
 
-The seed command creates or updates three local-only accounts. Passwords are supplied through environment variables and are hashed with Argon2id at runtime.
+The seed command creates or updates whichever local accounts have passwords supplied through environment variables. Passwords are hashed with Argon2id at runtime, so a deployment can seed only the administrator without supplying unrelated user passwords.
 
 Local administrator credentials:
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/balkanid/file-vault/internal/auth/password"
@@ -39,9 +40,12 @@ func main() {
 	defer db.Close()
 
 	for _, user := range demoUsers {
-		plainPassword := os.Getenv(user.envName)
+		plainPassword := strings.TrimSpace(os.Getenv(user.envName))
+		if plainPassword == "" {
+			continue
+		}
 		if len(plainPassword) < 12 {
-			log.Fatalf("%s must be set and contain at least 12 characters", user.envName)
+			log.Fatalf("%s must contain at least 12 characters when provided", user.envName)
 		}
 		hash, err := password.Hash(plainPassword)
 		if err != nil {
