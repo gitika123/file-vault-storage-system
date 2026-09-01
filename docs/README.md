@@ -2,6 +2,10 @@
 
 Documentation hub for the BalkanID secure file-vault implementation.
 
+## Primary project document
+
+Read the [consolidated engineering documentation](PROJECT_DOCUMENTATION.md) for the complete reviewer-facing guide: setup, architecture, database schema, API contract, feature coverage, testing, deployment, production notes, and AI-assisted methodology.
+
 ## Product and architecture
 
 - [Implementation plan](IMPLEMENTATION_PLAN.md) - scope, decisions, milestones, and risks.

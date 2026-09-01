@@ -6,7 +6,7 @@ A production-minded secure file vault built for the BalkanID Full Stack Engineer
 
 All required core features are implemented and locally verified. Bonus work includes Docker Compose, CI/UAT automation, previews, RBAC, audit events, upload progress state, live admin visualizations, and Helm packaging. Render deployment remains an external release step requiring provider resources and production secrets; the process-local rate limiter and local blob store should be replaced with shared production services before running multiple API replicas. See the evidence and status in [`docs/DELIVERABLES.md`](docs/DELIVERABLES.md) and [`docs/ISSUES.md`](docs/ISSUES.md).
 
-Start with the [documentation hub](docs/README.md), [deliverables matrix](docs/DELIVERABLES.md), and [living progress report](docs/progress-report.tex).
+Start with the [consolidated engineering documentation](docs/PROJECT_DOCUMENTATION.md), which brings together setup, architecture, schema, API behavior, requirements coverage, verification, deployment, and AI methodology. The [documentation hub](docs/README.md), [deliverables matrix](docs/DELIVERABLES.md), and [living progress report](docs/progress-report.tex) remain available as supporting records.
 
 ## Runtime architecture
 
