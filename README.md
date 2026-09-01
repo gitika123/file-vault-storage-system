@@ -70,10 +70,4 @@ scripts/       Local verification scripts
 docs/          Hiring-task documentation and technical contracts
 k8s/           Kubernetes manifests
 helm/          Helm chart
-```
 
-## Documentation
-
-The complete hiring-task document is [docs/hiring-task-documentation.tex](docs/hiring-task-documentation.tex). It covers the product, technology, core features, deliverables, infrastructure, bonus work, verification, and AI-assisted methodology.
-
-Supporting API, schema, storage, deployment, testing, and configuration references are under [docs/](docs/).
