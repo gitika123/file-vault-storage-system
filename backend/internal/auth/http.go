@@ -27,6 +27,12 @@ type loginRequest struct {
 	Password string `json:"password"`
 }
 
+type registerRequest struct {
+	Email       string `json:"email"`
+	DisplayName string `json:"displayName"`
+	Password    string `json:"password"`
+}
+
 type userResponse struct {
 	ID          string `json:"id"`
 	Email       string `json:"email"`
@@ -55,6 +61,30 @@ func (h HTTPHandler) Login(w http.ResponseWriter, r *http.Request) {
 	session.SetCookie(w, newSession.RawToken, newSession.ExpiresAt, h.CookieSecure)
 	session.SetCSRFCookie(w, newSession.CSRFToken, newSession.ExpiresAt, h.CookieSecure)
 	writeJSON(w, http.StatusOK, userResponseFrom(user))
+}
+
+func (h HTTPHandler) Register(w http.ResponseWriter, r *http.Request) {
+	var input registerRequest
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 16*1024)).Decode(&input); err != nil {
+		writeAuthError(w, http.StatusBadRequest, "INVALID_INPUT", "Enter your name, email, and password.")
+		return
+	}
+	user, newSession, err := h.Service.Register(r.Context(), input.Email, input.DisplayName, input.Password, h.clock())
+	if err != nil {
+		if errors.Is(err, ErrEmailTaken) {
+			writeAuthError(w, http.StatusConflict, "EMAIL_TAKEN", "An account with this email already exists.")
+			return
+		}
+		if strings.Contains(err.Error(), "valid email") || strings.Contains(err.Error(), "password must") {
+			writeAuthError(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+			return
+		}
+		writeAuthError(w, http.StatusInternalServerError, "INTERNAL", "Unable to create your account.")
+		return
+	}
+	session.SetCookie(w, newSession.RawToken, newSession.ExpiresAt, h.CookieSecure)
+	session.SetCSRFCookie(w, newSession.CSRFToken, newSession.ExpiresAt, h.CookieSecure)
+	writeJSON(w, http.StatusCreated, userResponseFrom(user))
 }
 
 func (h HTTPHandler) Logout(w http.ResponseWriter, r *http.Request) {

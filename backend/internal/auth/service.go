@@ -17,6 +17,7 @@ import (
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrAccountDisabled    = errors.New("account disabled")
+	ErrEmailTaken         = errors.New("email already registered")
 	ErrSessionNotFound    = errors.New("session not found")
 )
 
@@ -31,6 +32,43 @@ type Service struct {
 	DB           *sql.DB
 	SessionTTL   time.Duration
 	CookieSecure bool
+}
+
+func (s Service) Register(ctx context.Context, email, displayName, plainPassword string, now time.Time) (User, session.NewSession, error) {
+	if s.DB == nil {
+		return User{}, session.NewSession{}, errors.New("auth database is not configured")
+	}
+	email = strings.TrimSpace(strings.ToLower(email))
+	displayName = strings.TrimSpace(displayName)
+	if email == "" || !strings.Contains(email, "@") || displayName == "" || plainPassword == "" {
+		return User{}, session.NewSession{}, errors.New("valid email, name, and password are required")
+	}
+	hash, err := password.Hash(plainPassword)
+	if err != nil {
+		return User{}, session.NewSession{}, err
+	}
+	var user User
+	var role string
+	err = s.DB.QueryRowContext(ctx, `INSERT INTO users (email, display_name, password_hash) VALUES ($1, $2, $3) RETURNING id::text, email::text, display_name, role::text`, email, displayName, hash).Scan(&user.ID, &user.Email, &user.DisplayName, &role)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "duplicate key") {
+			return User{}, session.NewSession{}, ErrEmailTaken
+		}
+		return User{}, session.NewSession{}, fmt.Errorf("create user: %w", err)
+	}
+	user.Role = policy.Role(role)
+	ttl := s.SessionTTL
+	if ttl <= 0 {
+		ttl = 8 * time.Hour
+	}
+	newSession, err := session.New(now.Add(ttl))
+	if err != nil {
+		return User{}, session.NewSession{}, err
+	}
+	if _, err = s.DB.ExecContext(ctx, `INSERT INTO sessions (user_id, token_hash, csrf_hash, expires_at) VALUES ($1, $2, $3, $4)`, user.ID, newSession.TokenHash[:], newSession.CSRFHash[:], newSession.ExpiresAt); err != nil {
+		return User{}, session.NewSession{}, fmt.Errorf("create session: %w", err)
+	}
+	return user, newSession, nil
 }
 
 func (s Service) Authenticate(ctx context.Context, email, plainPassword string, now time.Time) (User, session.NewSession, error) {

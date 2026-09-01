@@ -77,6 +77,7 @@ func main() {
 	mux.HandleFunc("GET /health/live", healthHandler.Live)
 	mux.HandleFunc("GET /health/ready", healthHandler.Ready)
 	mux.HandleFunc("POST /api/auth/login", authHandler.Login)
+	mux.HandleFunc("POST /api/auth/register", authHandler.Register)
 	mux.Handle("POST /api/auth/logout", authHandler.RequireSession(true, http.HandlerFunc(authHandler.Logout)))
 	mux.Handle("GET /api/auth/me", authHandler.RequireSession(false, http.HandlerFunc(authHandler.Me)))
 	mux.Handle("GET /api/auth/csrf", authHandler.RequireSession(false, http.HandlerFunc(authHandler.CSRF)))
