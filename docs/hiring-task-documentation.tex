@@ -250,24 +250,24 @@ Each prompt covered one bounded requirement and included only the repository con
 \subsection{Project prompts}
 \begin{description}[style=nextline,leftmargin=0pt,labelindent=0pt]
 \item[Requirement decomposition]
-\textit{Review the product brief and convert it into dependency-ordered requirements. Classify each item as core, deliverable, bonus, or blocked. Give each requirement observable acceptance criteria and a reproducible verification plan.}
+\textit{Read the product brief and turn it into a clear, dependency-ordered checklist. Mark each item as core, deliverable, bonus, or blocked. For every item, define what a reviewer should be able to observe and how we will verify it.}
 
 \item[Backend implementation]
-\textit{Implement this single requirement in the existing Go module. Preserve ownership checks, structured errors, parameterized SQL, transaction boundaries, configuration conventions, and existing API behavior. Add focused tests for success, failure, authorization, boundary, and concurrency cases. Do not modify unrelated modules.}
+\textit{Implement this requirement in the existing Go module. Keep the current API behavior, ownership rules, configuration patterns, structured errors, parameterized SQL, and transaction boundaries intact. Add focused tests for the normal path, failures, authorization, boundaries, and concurrency. Keep unrelated modules unchanged.}
 
 \item[Database and scale review]
-\textit{Review this schema or query for ownership leaks, race conditions, rollback behavior, reference-count correctness, and index usage. Propose the smallest forward-only migration or query change, and explain how it will be verified with tests or an execution plan.}
+\textit{Review this schema or query for ownership leaks, race conditions, rollback problems, incorrect reference counts, and missing index support. Recommend the smallest forward-only change. Explain how tests or an execution plan will prove that the change is safe and useful at scale.}
 
 \item[Frontend implementation]
-\textit{Implement this user journey in the existing React and TypeScript design system. Cover loading, empty, error, success, keyboard, responsive, and authorization states. Keep API calls typed and add a browser test for the highest-value behavior.}
+\textit{Build this user journey in the existing React and TypeScript design system. Account for loading, empty, error, success, keyboard, responsive, and authorization states. Keep API calls typed and add a browser test for the most important user action.}
 
 \item[Security review]
-\textit{Review authentication, CSRF protection, authorization, file paths, MIME validation, token handling, headers, rate limiting, and error disclosure. Report the evidence, severity, exploit scenario, and smallest safe remediation for each issue.}
+\textit{Review authentication, CSRF protection, authorization, file paths, MIME checks, token handling, security headers, rate limiting, and error messages. For each issue, show the evidence, explain the risk, describe a realistic exploit, and recommend the smallest safe fix.}
 
 \item[Final verification]
-\textit{Check the implementation against every acceptance criterion. Run focused checks and then the full verification suite. Report exact commands and results, distinguish verified behavior from assumptions, and identify any documentation claim that exceeds the available evidence.}
+\textit{Check the implementation against every acceptance criterion. Run focused checks first, then the full verification suite. Record the exact commands and results. Separate verified behavior from assumptions, and flag any documentation statement that the available evidence does not support.}
 \end{description}
 
-People made the final decisions about scope, code, security, tests, and documentation. Source control contains no production credentials, tokens, private files, or secret values.
+People made the final decisions about scope, code, security, tests, and documentation. The repository contains no production credentials, tokens, private files, or secret values.
 
 \end{document}
