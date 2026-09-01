@@ -5,4 +5,5 @@ import './styles.css'
 import './modal.css'
 import './filter.css'
 import './balkanid-brand.css'
+import './design-polish.css'
 createRoot(document.getElementById('root')!).render(<React.StrictMode><App /></React.StrictMode>)
