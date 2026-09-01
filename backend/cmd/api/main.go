@@ -41,6 +41,10 @@ func main() {
 		os.Exit(1)
 	}
 	defer db.Close()
+	if err := database.RunMigrations(ctx, db); err != nil {
+		logger.Error("database migrations failed", "error", err)
+		os.Exit(1)
+	}
 
 	healthHandler := health.Handler{DB: db}
 	limiter := interface{ Allow(string) bool }(ratelimit.New(cfg.APIRatePerSecond, cfg.APIRateBurst))
